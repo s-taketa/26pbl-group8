@@ -1,0 +1,22 @@
+name: Docker Test
+
+on:
+  push:
+    branches: [ "main", "develop" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: コード取得
+        uses: actions/checkout@v4
+
+      - name: Docker build
+        run: docker build -t test-app .
+
+      - name: コンテナ起動（バックグラウンド）
+        run: docker run -d -p 3000:3000 --name test-container test-app
+
+      - name: 起動確認（ログチェック）
+        run: docker logs test-container
