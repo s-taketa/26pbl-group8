@@ -2,7 +2,7 @@
 public class WrightFlyer extends Plane{
 	@Override
 	public void run() {
-		System.out.println("バタバタ走る");
+		System.out.println("ドタバタ走る");
 	}
 	@Override
 	public void fly() {
