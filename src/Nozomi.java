@@ -7,7 +7,7 @@ public class Nozomi extends Train{
 	}
 	@Override
 	public void open() {
-		System.out.println("開きます");
+		System.out.println("開いたよー");
 	}
 	@Override
 	public void close() {
