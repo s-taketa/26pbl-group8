@@ -3,7 +3,7 @@ public class D51 extends Train{
 	int coal;
 	@Override
 	public void run() {
-		System.out.println("ぽっぽー");
+		System.out.println("さようなら");
 	}
 	@Override
 	public void open() {
