@@ -14,3 +14,4 @@ public class Nozomi extends Train{
 		System.out.println("閉まります");
 	}
 }
+
