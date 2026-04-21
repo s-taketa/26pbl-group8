@@ -3,7 +3,7 @@ public class Nozomi extends Train{
 	int elec;
 	@Override
 	public void run() {
-		System.out.println("ビューン");
+		System.out.println("バビューン");
 	}
 	@Override
 	public void open() {
@@ -14,3 +14,4 @@ public class Nozomi extends Train{
 		System.out.println("閉まります");
 	}
 }
+
