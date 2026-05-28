@@ -1,7 +1,109 @@
 version: "3.9"
 
 services:
+  # メインアプリケーション（Python Flask/FastAPI）
   app:
     build: .
+    container_name: ai-assistant-app
+    environment:
+      # Google Gemini API キー（.env ファイルから読み込み推奨）
+      GOOGLE_GEMINI_API_KEY: ${GOOGLE_GEMINI_API_KEY:-}
+      # MySQL 接続情報
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: ${DB_USER:-ai_assistant}
+      DB_PASSWORD: ${DB_PASSWORD:-changeme}
+      DB_NAME: ${DB_NAME:-ai_assistant_db}
+      # VOICEVOX 接続情報
+      VOICEVOX_HOST: voicevox
+      VOICEVOX_PORT: 50021
+      # アプリケーション設定
+      FLASK_APP: app.py
+      FLASK_ENV: ${FLASK_ENV:-production}
+      PYTHONUNBUFFERED: 1
     ports:
-      - "3000:3000"
+      - "5000:5000"    # Flask 用ポート
+      - "8000:8000"    # FastAPI 用ポート（複数ポート対応）
+    volumes:
+      # アプリケーションコード
+      - .:/app
+      # ログファイル永続化
+      - app-logs:/app/logs
+      # 認識画像の保存先永続化
+      - image-storage:/app/images
+      # 音声ファイル保存先
+      - voicevox-audio:/app/audio
+    depends_on:
+      db:
+        condition: service_healthy
+      voicevox:
+        condition: service_started
+    networks:
+      - ai-assistant-network
+    # Raspberry Pi カメラ（/dev/video0）へのアクセス
+    devices:
+      - /dev/video0:/dev/video0    # カメラモジュール
+    # USB マイクなど他のデバイスへのアクセスが必要な場合は、privileged モードまたは devices に追加
+    privileged: true               # ハードウェアアクセス許可
+    restart: unless-stopped
+
+  # MySQL データベース
+  db:
+    image: mysql:8.0
+    container_name: ai-assistant-db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_USER: ${DB_USER:-ai_assistant}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-changeme}
+      MYSQL_DATABASE: ${DB_NAME:-ai_assistant_db}
+    ports:
+      - "3306:3306"
+    volumes:
+      # MySQL データの永続化
+      - mysql-data:/var/lib/mysql
+    networks:
+      - ai-assistant-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # VOICEVOX 音声合成エンジン
+  voicevox:
+    image: voicevox/voicevox:latest
+    container_name: ai-assistant-voicevox
+    ports:
+      - "50021:50021"  # VOICEVOX API ポート
+    volumes:
+      # 音声ファイル出力先
+      - voicevox-audio:/app/audio
+    networks:
+      - ai-assistant-network
+    restart: unless-stopped
+    # メモリ制限（Raspberry Pi リソース保護）
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+# ネットワーク定義
+networks:
+  ai-assistant-network:
+    driver: bridge
+
+# ボリューム定義
+volumes:
+  # アプリケーション関連
+  app-logs:
+    driver: local
+  image-storage:
+    driver: local
+  voicevox-audio:
+    driver: local
+  # MySQL データベース
+  mysql-data:
+    driver: local
