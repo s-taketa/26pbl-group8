@@ -1,0 +1,88 @@
+graph TD
+    %% スタイルの定義
+    classDef startEnd fill:#f9f,stroke:#333,stroke-width:2px;
+    classDef process fill:#fff,stroke:#333,stroke-width:1px;
+    classDef condition fill:#ff9,stroke:#333,stroke-width:1px;
+    classDef error fill:#fbb,stroke:#333,stroke-width:1px;
+    classDef mainUI fill:#e1f5fe,stroke:#0288d1,stroke-width:2px;
+
+    Start([ユーザーがアプリを起動]) --> LoginScreen[① ログイン画面]
+    
+    LoginScreen --> Choice{ユーザーの行動・状態}
+    
+    %% 1つ目：成功パターン（メイン画面へ行く前にラズパイの状態をチェック）
+    Choice -->|ID・パスワードを入力| AuthCheck{認証成功？}
+    AuthCheck -->|Yes| RaspiCheck{ラズパイの電源は<br>ついている？}
+    
+    %% ラズパイオンライン（電源ON）の場合
+    RaspiCheck -->|Yes: オンライン| MainScreenOnline[② メイン画面 <br> リアルタイム画面右上：〇LEC表示]
+    MainScreenOnline --> DisplayOnline[【画面表示エリア】<br>・リアルタイム画像あり<br>・生成した回答<br>・日時<br>・聞かれた内容]
+    MainScreenOnline --> MainButtons
+    
+    %% ラズパイオフライン（電源OFF）の場合
+    RaspiCheck -->|No: オフライン| MainScreenOffline[② メイン画面 <br> リアルタイム画面右上：非表示]
+    MainScreenOffline --> DisplayOffline[【画面表示エリア】<br>・リアルタイム画像：なし<br>・生成した回答<br>・日時<br>・聞かれた内容]
+    MainScreenOffline --> MainButtons
+    
+    %% メイン画面共通の操作ボタン分岐
+    MainButtons{操作ボタンを選択}
+    
+    %% ログアウト処理
+    MainButtons -->|「ログアウト」| LogoutConfirmScreen[ログアウト確認画面<br>「本当にログアウトしていいですか」]
+    LogoutConfirmScreen --> LogoutChoice{ボタンを選択}
+    LogoutChoice -->|「YES」| LoginScreen
+    %% NOのときは、直前の電源状態のメイン画面に戻す（ここでは便宜上共通のメイン判定に戻すなどでも可ですが、シンプルにRaspiCheckへ）
+    LogoutChoice -->|「NO」| RaspiCheck
+    
+    %% 通知設定
+    MainButtons -->|「通知設定」| NotificationScreen[通知設定画面]
+    NotificationScreen --> NotificationUI[【設定項目（クリックでON/OFF）】<br>① 会話ログ送信<br>② 画像添付<br>③ 定期的な連絡<br>④ LINE連携設定<br>※「戻る」ボタンも配置]
+    NotificationUI --> NotificationAction{どの操作をする？}
+    NotificationAction -->|各項目をクリック| ToggleAction[ON / OFF の状態を切り替え]
+    ToggleAction -->|画面は戻らない| NotificationScreen
+    NotificationAction -->|「戻る」ボタン| RaspiCheck
+    
+    %% キーワードの変更
+    MainButtons -->|「キーワードの変更」| KeywordScreen[キーワード変更画面]
+    KeywordScreen --> KeywordUI[【画面構成】<br>・「キーワードの変更」のテキスト<br>・キーワード入力用テキストボックス<br>・「保存」ボタン<br>・「戻る」ボタン]
+    KeywordUI --> KeywordAction{どちらのボタンを押した？}
+    KeywordAction -->|「保存」ボタン| SaveAction[キーワードを保存処理]
+    SaveAction -->|画面は戻らない| KeywordScreen
+    KeywordAction -->|「戻る」ボタン| RaspiCheck
+    
+    %% 2つ目：間違いパターン
+    AuthCheck -->|No| ErrorMessage[エラー表示<br>「電話番号メールアドレスまたは<br>パスワードが違います」]
+    ErrorMessage --> LoginScreen
+    
+    %% 3つ目：新規登録パターン
+    Choice -->|「新規登録」ボタンを押す| SignUpScreen[新規登録画面]
+    SignUpScreen --> InputSignUpInfo[「電話番号またはメールアドレス」<br>および「パスワード」を入力]
+    InputSignUpInfo --> ClickSignUpBtn[「登録完了」ボタンを押す]
+    ClickSignUpBtn --> LoginScreen
+    
+    %% 4つ目：パスワード忘れパターン
+    Choice -->|「パスワードを忘れた場合」ボタンを押す| ForgotPasswordScreen[「パスワードを忘れた場合」画面]
+    ForgotPasswordScreen --> InputResetEmail[「電話番号またはメールアドレス」を入力]
+    InputResetEmail --> SendCode[メールに4桁のコードが送信される]
+    SendCode --> CodeInputScreen[4桁の数字を入力する画面]
+    
+    CodeInputScreen --> CodeCheck{コードは正しい？}
+    CodeCheck -->|No| CodeError[エラー表示<br>「コードが間違っています」]
+    CodeError --> CodeInputScreen
+    
+    CodeCheck -->|Yes| NewPasswordScreen[新しいパスワード入力画面]
+    NewPasswordScreen --> InputNewPassword[「新しいパスワードを入力してください」<br>「もう一度入力してください」に入力]
+    InputNewPassword --> PasswordCheck{2つのパスワードは一致する？}
+    
+    PasswordCheck -->|No| PassError[エラー表示<br>「2つのパスワードが合っていません」]
+    PassError --> NewPasswordScreen
+    
+    PasswordCheck -->|Yes| ClickCompleteBtn[「完了」ボタンを押す]
+    ClickCompleteBtn --> LoginScreen
+
+    %% スタイルの適用
+    class Start startEnd;
+    class LoginScreen,SignUpScreen,InputSignUpInfo,ClickSignUpBtn,ForgotPasswordScreen,InputResetEmail,SendCode,CodeInputScreen,NewPasswordScreen,InputNewPassword,ClickCompleteBtn,LogoutConfirmScreen,NotificationScreen,NotificationUI,ToggleAction,KeywordScreen,KeywordUI,SaveAction process;
+    class Choice,AuthCheck,CodeCheck,PasswordCheck,MainButtons,LogoutChoice,NotificationAction,KeywordAction,RaspiCheck condition;
+    class ErrorMessage,CodeError,PassError error;
+    class MainScreenOnline,MainScreenOffline,DisplayOnline,DisplayOffline mainUI;
