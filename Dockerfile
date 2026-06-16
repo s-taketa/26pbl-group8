@@ -8,7 +8,7 @@ WORKDIR /app
 # システムパッケージの更新とインストール
 RUN apt-get update && apt-get install -y --no-install-recommends \
     # OpenCV 関連の依存ライブラリ
-    libgl1-mesa-glx \
+    libgl1 \
     libglib2.0-0 \
     libsm6 \
     libxext6 \

@@ -13,7 +13,7 @@ SQLAlchemy==2.0.23
 opencv-python==4.8.1.78
 
 # AI / 機械学習
-google-generativeai==0.3.0
+google-generativeai>=0.8.0
 
 # 音声処理
 vosk==0.3.45
