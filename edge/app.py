@@ -9,10 +9,6 @@ class EdgeApp:
         # サーバーとの通信が維持されているかを定期的に確認する
         pass
 
-    def listenToServerRequest(self):
-        # サーバーからの実行命令（認識開始など）を常時待ち受ける
-        pass
-
     def startRecognition(self):
         # サーバー命令に応じて認識を開始
         pass
