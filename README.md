@@ -1,8 +1,73 @@
 # 26pbl-group8 - AI見守りアシスタント
 
+## 📋 目次
+
+- [概要](#概要)
+- [リポジトリ構成](#リポジトリ構成)
+- [システムアーキテクチャ](#システムアーキテクチャ)
+- [Docker 構成](#docker-構成)
+- [環境変数設定](#環境変数設定)
+- [セットアップ手順](#セットアップ手順)
+- [使用例](#使用例)
+- [トラブルシューティング](#トラブルシューティング)
+- [停止とクリーンアップ](#停止とクリーンアップ)
+- [主要な技術スタック](#主要な技術スタック)
+- [開発フロー](#開発フロー)
+
+---
+
 ## 概要
 
-本プロジェクトは、Raspberry Pi 5（エッジ側）とUbuntuサーバー（管理側）で構成される**次世代AI見守りアシスタント**です。カメラ映像の解析、音声認識・合成、AIとの対話を通じて、リアルタイムな見守りと支援を実現します。
+本プロジェクトは、Raspberry Pi 5（エッジ側）とUbuntuサーバー（管理側）で構成される**次世代AI見守りアシスタント**です。カメラ映像の解析、音声認識、AI判断、そして家族への自動通知機能を備えています。
+
+### 主要機能
+
+- 🎥 リアルタイム映像解析（OpenCV + Google Gemini API）
+- 🎤 音声認識・合成（Vosk / Whisper + VOICEVOX）
+- 💭 AI会話エンジン（Google Gemini API 1.5 Flash）
+- 📱 LINE Messaging API による家族通知
+- 📊 ログ管理・UI ダッシュボード
+- 🔐 ユーザー認証（電話番号/メールアドレス）
+
+---
+
+## リポジトリ構成
+
+```
+26pbl-group8/                           # リポジトリルート
+├── .env                                # 機密情報管理 (Gemini API, LINEトークン, DB情報)
+├── .gitignore                          # Git管理除外設定
+├── docker-compose.yml                  # コンテナ管理 (app, db, voicevox)
+├── Dockerfile                          # Python 3.11-slimベースの実行環境定義
+├── requirements.txt                    # Pythonライブラリ一覧 (Gemini, OpenCV, Vosk等)
+├── README.md                           # このファイル
+│
+├── edge/                               # エッジ側アプリケーション (Raspberry Pi 5用)
+│   ├── app.py                          # サーバー命令待ち受け用Flaskサーバー
+│   ├── ai_logic.py                     # Gemini API (1.5 Flash) による状況判断ロジック
+│   ├── image_processor.py              # カメラキャプチャ・RGB入れ替え処理
+│   ├── keyword_listener.py             # Voskによる「起動して」等の常時監視
+│   └── voice_handler.py                # Whisper(STT)およびVOICEVOX(TTS)制御
+│
+├── server/                             # サーバー側アプリケーション (Ubuntuサーバー用)
+│   ├── main.py                         # 管理画面・API制御のメインプログラム
+│   ├── database.py                     # SQLAlchemyによるMySQL接続・DB操作
+│   ├── models.py                       # MySQLテーブル定義 (users, logs等)
+│   ├── line_notifier.py                # LINE Messaging APIによる家族通知
+│   │
+│   ├── static/                         # フロントエンド静的ファイル
+│   │   ├── css/
+│   │   │   └── style.css               # ユニバーサルデザイン用スタイルシート
+│   │   └── js/
+│   │       └── main.js                 # リアルタイム更新・通信制御
+│   │
+│   └── templates/                      # HTMLテンプレートファイル
+│       ├── index.html                  # ダッシュボード (映像、ログ、通知表示)
+│       └── login.html                  # 認証画面 (電話番号/メールアドレス)
+│
+└── sql/                                # データベース関連
+    └── schema.sql                      # MySQL初期化スクリプト
+```
 
 ---
 
@@ -39,7 +104,7 @@
 
 ---
 
-## Docker 構成（docker-compose）
+## Docker 構成
 
 ### サービス一覧
 
@@ -239,7 +304,7 @@ docker inspect <container_id>
 # MySQL が正常に起動しているか確認
 docker-compose ps db
 
-# MySQL ヘルスチェックを実行
+# MySQL ヘ���スチェックを実行
 docker-compose exec db mysqladmin ping -h localhost
 ```
 
@@ -298,14 +363,17 @@ docker-compose down -v
 | **VOICEVOX** | 音声合成 |
 | **MySQL 8.0** | データベース |
 | **Vosk / SpeechRecognition** | 音声認識 |
+| **LINE Messaging API** | 家族通知 |
 
 ---
 
-## Branch Protection Rules (main)
+## 開発フロー
+
+### Branch Protection Rules (main)
 
 mainブランチは以下のルールで保護されています。
 
-### ■ Rules
+#### ■ Rules
 
 - Require a pull request before merging
 - Require approvals
@@ -315,9 +383,7 @@ mainブランチは以下のルールで保護されています。
 - Require conversation resolution before merging
 - Do not allow bypassing the above settings
 
----
-
-## ■ Development Flow
+#### ■ Development Flow
 
 このリポジトリでは以下のフローで開発を行います。
 
@@ -328,9 +394,7 @@ mainブランチは以下のルールで保護されています。
 4. 修正があれば対応
 5. 承認後、mainへマージ
 
----
-
-## ■ Notes
+#### ■ Notes
 
 - mainブランチへの直接pushは禁止
 - 必ずPull Requestを経由すること
