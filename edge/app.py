@@ -9,14 +9,6 @@ class EdgeApp:
         # サーバーとの通信が維持されているかを定期的に確認する
         pass
 
-    def startRecognition(self):
-        # サーバー命令に応じて認識を開始
-        pass
-
-    def stopRecognition(self):
-        # 認識を停止
-        pass
-
     def sendDataToServer(self, logData):
         # AIの判定結果、回答テキスト、撮影画像をサーバーの中央DBへ送信する
         pass
