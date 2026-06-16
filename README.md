@@ -43,16 +43,14 @@
 ├── README.md                           # このファイル
 │
 ├── edge/                               # エッジ側アプリケーション (Raspberry Pi 5用)
-│   ├── app.py                          # サーバー命令待ち受け用Flaskサーバー
-│   ├── ai_logic.py                     # Gemini API (1.5 Flash) による状況判断ロジック
-│   ├── image_processor.py              # カメラキャプチャ・RGB入れ替え処理
-│   ├── keyword_listener.py             # Voskによる「起動して」等の常時監視
-│   └── voice_handler.py                # Whisper(STT)およびVOICEVOX(TTS)制御
+│   ├── app.py                          # エッジ側のメイン制御およびサーバーとの通信を担当
+│   ├── image_processor.py              # カメラ映像の取得と、NoIRカメラ特有の青みを補正する処理
+│   └── keyword_listener.py             # Voskによる「起動して」等の常時監視
 │
 ├── server/                             # サーバー側アプリケーション (Ubuntuサーバー用)
 │   ├── main.py                         # 管理画面・API制御のメインプログラム
+│   ├── ai_logic.py                     # Gemini API (1.5 Flash) による状況判断ロジック
 │   ├── database.py                     # SQLAlchemyによるMySQL接続・DB操作
-│   ├── models.py                       # MySQLテーブル定義 (users, logs等)
 │   ├── line_notifier.py                # LINE Messaging APIによる家族通知
 │   │
 │   ├── static/                         # フロントエンド静的ファイル
