@@ -24,7 +24,7 @@ class DatabaseManager:
     def _get_session(self):
         return self.SessionLocal()
 
-    # --- データベース操作メソッド ---
+    # データベース操作メソッド
 
     def createUser(self, user_data):
         """新規ユーザーを作成"""
@@ -48,7 +48,7 @@ class DatabaseManager:
             session.close()
 
     def getUserByEmail(self, email):
-        """ユーザー情報を取得（認証処理用）"""
+        # ユーザー情報を取得（認証処理用）
         session = self._get_session()
         try:
             return session.query(User).filter(User.login_id == email).first()
@@ -56,7 +56,7 @@ class DatabaseManager:
             session.close()
 
     def getSystemSettings(self, key):
-        """キーワード設定などをsystem_settingsテーブルから取得する"""
+        # キーワード設定などをsystem_settingsテーブルから取得する
         session = self._get_session()
         try:
             setting = session.query(SystemSetting).filter(SystemSetting.setting_key == key).first()
@@ -65,7 +65,7 @@ class DatabaseManager:
             session.close()
 
     def writeRecognitionLog(self, logEntry):
-        """AIの回答や緊急フラグをrecognition_logsテーブルに保存する"""
+        # AIの回答や緊急フラグをrecognition_logsテーブルに保存する
         session = self._get_session()
         try:
             new_log = RecognitionLog(
@@ -86,7 +86,7 @@ class DatabaseManager:
             session.close()
 
     def getRecognitionHistory(self, limit=10):
-        """ダッシュボード表示用のログ履歴を最新順で取得"""
+        # ダッシュボード表示用のログ履歴を最新順で取得
         session = self._get_session()
         try:
             return session.query(RecognitionLog).order_by(RecognitionLog.timestamp.desc()).limit(limit).all()
@@ -94,7 +94,7 @@ class DatabaseManager:
             session.close()
 
     def updateEdgeStatus(self):
-        """エッジのオンライン状態を更新"""
+        # エッジのオンライン状態を更新
         print("[DB Info] エッジデバイスのステータスを更新しました")
         pass
 

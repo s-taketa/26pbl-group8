@@ -6,7 +6,11 @@ app = Flask(__name__)
 db = DatabaseManager()  # 司令塔専用のDB操作窓口を開設
 
 class MainController:
+
     """管理・認証を扱うサーバーサイドのメインクラス"""
+
+    # 管理・認証を扱うサーバーサイドのメインクラス（チームメンバーの設計）
+
 
     def authenticateUser(self, login_id, password_hash):
         """ログインIDとパスワードの照合"""
@@ -22,6 +26,7 @@ class MainController:
 
 # --- APIエンドポイント ---
 
+
 @app.route('/login', methods=['POST'])
 def login():
     data = request.json
@@ -33,6 +38,11 @@ def login():
 def dashboard():
     controller = MainController()
     return jsonify(controller.getDashboardData())
+
+    def sendRecognitionCommand(self):
+        # 司令塔としてエッジ（ラズパイ）に認識開始の命令を出す
+        pass
+
 
 @app.route('/')
 def hello():

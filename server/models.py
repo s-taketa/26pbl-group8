@@ -7,7 +7,7 @@ from datetime import datetime
 Base = declarative_base()
 
 class User(Base):
-    """users テーブルのモデル"""
+    # users テーブルのモデル
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -22,7 +22,7 @@ class User(Base):
 
 
 class RecognitionLog(Base):
-    """recognition_logs テーブルのモデル"""
+    # recognition_logs テーブルのモデル
     __tablename__ = 'recognition_logs'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -38,7 +38,7 @@ class RecognitionLog(Base):
 
 
 class NotificationHistory(Base):
-    """notification_history テーブルのモデル"""
+    # notification_history テーブルのモデル
     __tablename__ = 'notification_history'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -53,7 +53,7 @@ class NotificationHistory(Base):
 
 
 class SystemSetting(Base):
-    """system_settings テーブルのモデル"""
+    # system_settings テーブルのモデル
     __tablename__ = 'system_settings'
 
     setting_key = Column(String(100), primary_key=True, comment='設定キー名')
