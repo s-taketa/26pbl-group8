@@ -5,7 +5,7 @@ from flask import Flask
 app = Flask(__name__)
 
 class MainController:
-    """管理・認証を扱うサーバーサイドのメインクラス（チームメンバーの設計）"""
+    # 管理・認証を扱うサーバーサイドのメインクラス（チームメンバーの設計）
 
     def authenticateUser(self, id, password):
         pass
@@ -26,7 +26,7 @@ class MainController:
         pass
 
     def sendRecognitionCommand(self):
-        """【Hinata追記】司令塔としてエッジ（ラズパイ）に認識開始の命令を出す"""
+        # 司令塔としてエッジ（ラズパイ）に認識開始の命令を出す
         pass
 
 # サーバーの稼働確認用のWebページ
