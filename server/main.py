@@ -1,26 +1,48 @@
+# server/main.py
+from flask import Flask, request, jsonify
+from database import DatabaseManager  # パッケージを指定して読み込む
+
+app = Flask(__name__)
+db = DatabaseManager()  # 司令塔専用のDB操作窓口を開設
+
 class MainController:
+
     # 管理・認証を扱うサーバーサイドのメインクラス
-
-    def authenticateUser(self, id, password):
-        # 補助者のログイン情報を検証する。
-        pass
-
-    def sendAuthCode(self):
-        # 認証用4桁コードを生成・送信する。
-        pass
-
-    def validateAuthCode(self, code):
-        # 送信した認証コードを検証する。
-        pass
-
-    def resetPassword(self):
-        # 認証後にパスワードを更新する。
-        pass
+    
+    def authenticateUser(self, login_id, password_hash):
+        """ログインIDとパスワードの照合"""
+        user = db.getUserByEmail(login_id)
+        if user and user.password_hash == password_hash:
+            return True, user.user_name
+        return False, None
 
     def getDashboardData(self):
-        # 画面表示用にログや接続状態を一括取得する。
+        # フロントエンド用：最新ログの取得
+        logs = db.getRecognitionHistory(limit=5)
+        return [{"query": log.user_query, "response": log.ai_response} for log in logs]
+
+# APIエンドポイント
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    controller = MainController()
+    success, name = controller.authenticateUser(data['login_id'], data['password_hash'])
+    return jsonify({"success": success, "user_name": name})
+
+@app.route('/dashboard', methods=['GET'])
+def dashboard():
+    controller = MainController()
+    return jsonify(controller.getDashboardData())
+
+    def sendRecognitionCommand(self):
+        # 司令塔としてエッジ（ラズパイ）に認識開始の命令を出す
         pass
 
-    def syncSettingsToEdge(self):
-        # 画面での設定変更を即座にラズパイへ反映させる命令を送る。
-        pass
+@app.route('/')
+def hello():
+    return "見守りサーバー起動成功！データベース連携の準備完了です！"
+
+if __name__ == '__main__':
+    print("見守りサーバー（司令塔）を起動しています...")
+    app.run(host='0.0.0.0', port=5000)
