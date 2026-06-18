@@ -1,3 +1,6 @@
+import os
+import reqest
+
 class LineNotifier:
     # 外部連携
 
