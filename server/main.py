@@ -7,11 +7,8 @@ db = DatabaseManager()  # 司令塔専用のDB操作窓口を開設
 
 class MainController:
 
-    """管理・認証を扱うサーバーサイドのメインクラス"""
-
-    # 管理・認証を扱うサーバーサイドのメインクラス（チームメンバーの設計）
-
-
+    # 管理・認証を扱うサーバーサイドのメインクラス
+    
     def authenticateUser(self, login_id, password_hash):
         """ログインIDとパスワードの照合"""
         user = db.getUserByEmail(login_id)
@@ -20,12 +17,11 @@ class MainController:
         return False, None
 
     def getDashboardData(self):
-        """フロントエンド用：最新ログの取得"""
+        # フロントエンド用：最新ログの取得
         logs = db.getRecognitionHistory(limit=5)
         return [{"query": log.user_query, "response": log.ai_response} for log in logs]
 
-# --- APIエンドポイント ---
-
+# APIエンドポイント
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -43,7 +39,6 @@ def dashboard():
         # 司令塔としてエッジ（ラズパイ）に認識開始の命令を出す
         pass
 
-
 @app.route('/')
 def hello():
     return "見守りサーバー起動成功！データベース連携の準備完了です！"
@@ -51,5 +46,3 @@ def hello():
 if __name__ == '__main__':
     print("見守りサーバー（司令塔）を起動しています...")
     app.run(host='0.0.0.0', port=5000)
-
-
