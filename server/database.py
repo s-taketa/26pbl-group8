@@ -27,7 +27,7 @@ class DatabaseManager:
     # データベース操作メソッド
 
     def createUser(self, user_data):
-        """新規ユーザーを作成"""
+        # 新規ユーザーを作成
         session = self._get_session()
         try:
             # モデルの定義を最大限尊重し、自動生成される項目は指定しない
