@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 # 同じフォルダにある models を明示的に読み込みます
-from .models import User, RecognitionLog, NotificationHistory, SystemSetting
+from models import User, RecognitionLog, NotificationHistory, SystemSetting
 
 # あなたが構築したDocker環境のMySQL接続情報
 DB_USER = os.environ.get("DB_USER", "mimamori_user")
