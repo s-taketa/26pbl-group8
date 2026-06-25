@@ -18,7 +18,7 @@ services:
       VOICEVOX_HOST: voicevox
       VOICEVOX_PORT: 50021
       # アプリケーション設定
-      FLASK_APP: app.py
+      FLASK_APP: server/main.py
       FLASK_ENV: ${FLASK_ENV:-production}
       PYTHONUNBUFFERED: 1
     ports:
