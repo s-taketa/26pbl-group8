@@ -9,7 +9,7 @@ import requests
 
 
 class VoiceHandler:
-    """音声認識と音声合成を扱うサーバーサイドのユーティリティクラス"""
+    # 音声認識と音声合成を扱うサーバーサイドのユーティリティクラス
 
     def __init__(self, host: str = None, port: str = None, speaker: int = None):
         # docker-compose ではサービス名 "voicevox" で解決できる。
@@ -32,12 +32,12 @@ class VoiceHandler:
     # ==================== 音声合成（TTS / VOICEVOX） ====================
 
     def split_sentences(self, text: str):
-        """句点・改行で文に分割する（空文字は除く）"""
+        # 句点・改行で文に分割する（空文字は除く）
         sentences = [s for s in re.split(r'(?<=[。！？\n])', text) if s.strip()]
         return sentences or ([text] if text.strip() else [])
 
     def synthesize(self, sentence: str, speaker: int = None, timeout: float = 20.0) -> bytes:
-        """1文をVOICEVOXで合成し、WAVバイト列を返す"""
+        # 1文をVOICEVOXで合成し、WAVバイト列を返す
         speaker = self.speaker if speaker is None else speaker
 
         query_resp = requests.post(
