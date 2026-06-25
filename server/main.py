@@ -11,7 +11,7 @@ import uuid
 from ai_logic import processResponse
 from voice_handler import VoiceHandler
 from main_controller import MainController
-# from database import DatabaseManager   # ← DB担当が実装予定。実装完了後にコメント解除
+# from database import DatabaseManager   ← DB担当が実装予定。実装完了後にコメント解除
 # from line_notifier import send_line_alert   # 浅尾さん担当（緊急通知）
 
 app = Flask(__name__)
@@ -29,7 +29,7 @@ def _frame(payload: bytes) -> bytes:
     return struct.pack(">I", len(payload)) + payload
 
 
-# ==================== AI連携エンドポイント（自分の担当） ====================
+# ==================== AI連携エンドポイント ====================
 
 @app.route('/api/recognition', methods=['POST'])
 def receive_recognition():
@@ -77,26 +77,30 @@ def receive_recognition():
             print(f"[ALERT] 緊急検知: {result.get('category')} - {result.get('alert_message')}")
             # send_line_alert(result)   # ← line_notifier.py 実装完了後にコメント解除
 
-        # --- DB保存（DB担当の実装完了後にコメント解除） ---
-        # log_entry = {
-        #     "user_id": 1,
-        #     "image_path": saved_path,
-        #     "user_query": command,
-        #     "ai_response": result.get("answer"),
-        #     "is_emergency": result.get("is_emergency"),
-        #     "category": result.get("category"),
-        #     "alert_message": result.get("alert_message"),
-        # }
-        # db_manager.writeRecognitionLog(log_entry)
+        """
+        --- DB保存（DB担当の実装完了後にコメント解除） ---
+        log_entry = {
+            "user_id": 1,
+            "image_path": saved_path,
+            "user_query": command,
+            "ai_response": result.get("answer"),
+            "is_emergency": result.get("is_emergency"),
+            "category": result.get("category"),
+            "alert_message": result.get("alert_message"),
+        }
+        db_manager.writeRecognitionLog(log_entry)
+        """
         print(f"[DB] (未実装のためスキップ) 保存予定だったログ: query={command}, answer={result.get('answer')}")
 
     except Exception as e:
         print(f"[ERROR] 処理中にエラー: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
-    # --- ラズパイへ「回答テキスト＋文ごとの音声」をストリーミング返却 ---
-    # 1フレーム目にメタJSON、以降は文ごとのWAV。合成でき次第すぐ流すので、
-    # エッジは最初の一文が届いた時点で再生を始められる。
+    """
+    --- ラズパイへ「回答テキスト＋文ごとの音声」をストリーミング返却 ---
+    1フレーム目にメタJSON、以降は文ごとのWAV。合成でき次第すぐ流すので、
+    エッジは最初の一文が届いた時点で再生を始められる。
+    """
     answer = result.get("answer", "") or ""
 
     def generate():
