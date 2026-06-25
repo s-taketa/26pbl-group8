@@ -1,13 +1,12 @@
-version: "3.9"
-
 services:
   # メインアプリケーション（Python Flask/FastAPI）
   app:
     build: .
     container_name: ai-assistant-app
+    env_file:
+      - .env
     environment:
-      # Google Gemini API キー（.env ファイルから読み込み推奨）
-      GOOGLE_GEMINI_API_KEY: ${GOOGLE_GEMINI_API_KEY:-}
+      GOOGLE_GEMINI_API_KEY: ${GOOGLE_GEMINI_API_KEY}
       # MySQL 接続情報
       DB_HOST: db
       DB_PORT: 3306
@@ -21,9 +20,10 @@ services:
       FLASK_APP: server/main.py
       FLASK_ENV: ${FLASK_ENV:-production}
       PYTHONUNBUFFERED: 1
+    command: python server/main.py
     ports:
-      - "5000:5000"    # Flask 用ポート
-      - "8000:8000"    # FastAPI 用ポート（複数ポート対応）
+      - "5000:5000" # Flask 用ポート
+      - "8000:8000" # FastAPI 用ポート（複数ポート対応）
     volumes:
       # アプリケーションコード
       - .:/app
@@ -42,9 +42,9 @@ services:
       - ai-assistant-network
     # Raspberry Pi カメラ（/dev/video0）へのアクセス
     devices:
-      - /dev/video0:/dev/video0    # カメラモジュール
+      - /dev/video0:/dev/video0 # カメラモジュール
     # USB マイクなど他のデバイスへのアクセスが必要な場合は、privileged モードまたは devices に追加
-    privileged: true               # ハードウェアアクセス許可
+    privileged: true # ハードウェアアクセス許可
     restart: unless-stopped
 
   # MySQL データベース
@@ -75,14 +75,12 @@ services:
     image: voicevox/voicevox_engine:cpu-ubuntu20.04-latest
     container_name: ai-assistant-voicevox
     ports:
-      - "50021:50021"  # VOICEVOX API ポート
+      - "50021:50021" # VOICEVOX API ポート
     volumes:
-      # 音声ファイル出力先
       - voicevox-audio:/app/audio
     networks:
       - ai-assistant-network
     restart: unless-stopped
-    # メモリ制限（Raspberry Pi リソース保護）
     deploy:
       resources:
         limits:
