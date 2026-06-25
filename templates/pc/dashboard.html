@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI見守りアシスタント - ダッシュボード</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .dashboard-container {
+            width: 100%;
+            max-width: 1280px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            padding: 24px;
+            position: relative;
+            min-height: 680px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ==========================================
+           1. メインダッシュボード表示
+           ========================================== */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 2fr 1.2fr 200px;
+            gap: 20px;
+        }
+
+        .ui-box {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            min-height: 400px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #video-container { background: #eef2f7; }
+
+        .lec-badge {
+            position: absolute;
+            top: 16px;
+            left: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #e11d48;
+            background: rgba(225, 29, 72, 0.1);
+            padding: 4px 10px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .lec-badge::before {
+            content: "";
+            display: inline-block; width: 8px; height: 8px;
+            background: #e11d48; border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        .menu-column { display: grid; grid-template-rows: repeat(3, 1fr); gap: 12px; }
+        .menu-item {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            font-weight: 600;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .menu-item:hover {
+            background-color: #f8fafc;
+            border-color: #94a3b8;
+            transform: translateY(-1px);
+        }
+        .menu-item.logout { color: #dc2626; background: #fef2f2; border-color: #fee2e2; }
+
+        .bottom-row {
+            grid-column: 1 / 4;
+            display: grid;
+            grid-template-columns: 2fr 1.39fr;
+            margin-top: 24px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 8px;
+        }
+        .header-label { font-size: 15px; font-weight: 700; color: #64748b; padding-left: 8px; }
+
+        .log-area {
+            grid-column: 1 / 4;
+            display: grid;
+            grid-template-columns: 2fr 1.39fr;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            min-height: 180px;
+            overflow: hidden;
+        }
+        .log-datetime-col { background-color: #f1f5f9; border-right: 1px solid #e2e8f0; padding: 16px; }
+        .log-content-col { padding: 16px; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 600; color: #94a3b8; letter-spacing: 2px; }
+
+        /* ==========================================
+           2. 通知設定パネル (LINE通知追加)
+           ========================================== */
+        .settings-panel { display: none; padding: 10px 20px; }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px; }
+        .panel-header h2 { font-size: 22px; color: #1e293b; }
+        .nav-btn { background: #64748b; color: white; border: none; padding: 10px 24px; font-size: 14px; font-weight: 600; border-radius: 8px; cursor: pointer; }
+        .nav-btn:hover { background: #475569; }
+
+        .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 18px 10px; border-bottom: 1px solid #f1f5f9; }
+        .setting-row.sub-item { padding-left: 40px; background: #fafafa; }
+        
+        .setting-info .title { font-size: 16px; font-weight: 600; color: #334155; }
+        .setting-info .description { font-size: 12px; color: #64748b; margin-top: 4px; }
+
+        /* トグルスイッチ */
+        .switch { position: relative; display: inline-block; width: 54px; height: 28px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .3s; border-radius: 34px; }
+        .slider::before { position: absolute; content: ""; height: 22px; width: 22px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: #3b82f6; }
+        input:checked + .slider::before { transform: translateX(26px); }
+
+        /* 連携解除ボタン */
+        .btn-disconnect {
+            background-color: #ffffff;
+            color: #dc2626;
+            border: 1px solid #fee2e2;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 15px;
+            transition: all 0.2s;
+        }
+        .btn-disconnect:hover {
+            background-color: #dc2626;
+            color: white;
+        }
+
+        /* ==========================================
+           3. キーワードの変更パネル
+           ========================================== */
+        .keyword-panel { display: none; flex-direction: column; height: 100%; flex-grow: 1; position: relative; }
+        .keyword-panel .top-left-nav { position: absolute; top: 0; left: 0; }
+        .keyword-content { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 20px; }
+        .keyword-content h2 { font-size: 28px; color: #1e293b; }
+        .keyword-input { width: 100%; max-width: 600px; padding: 16px 20px; font-size: 18px; border: 2px solid #cbd5e1; border-radius: 12px; text-align: center; }
+        .bottom-right-nav { display: flex; justify-content: flex-end; margin-top: auto; }
+        .btn-save { background: #3b82f6; color: white; border: none; padding: 14px 40px; font-size: 16px; font-weight: 700; border-radius: 10px; cursor: pointer; }
+
+        /* ==========================================
+           4. ログアウト確認モーダル
+           ========================================== */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px);
+            justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-box { background: #ffffff; border-radius: 14px; padding: 30px; width: 400px; text-align: center; }
+        .modal-actions { display: flex; gap: 12px; justify-content: center; margin-top: 24px; }
+        .modal-btn { flex: 1; padding: 12px; border-radius: 8px; cursor: pointer; border: 1px solid #cbd5e1; font-weight: 600; }
+        .btn-yes { background: #dc2626; color: white; border-color: #dc2626; }
+        .btn-no { background: #f1f5f9; color: #475569; }
+
+        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+    </style>
+</head>
+<body>
+
+<div class="dashboard-container">
+    
+    <div class="dashboard-grid" id="main-view">
+        <div class="ui-box" id="video-container"><span class="lec-badge">○LEC</span></div>
+        <div class="ui-box" style="background: #f8fafc; border-style: dashed;"></div>
+        <div class="menu-column">
+            <div class="menu-item logout" id="nav-logout">ログアウト</div>
+            <div class="menu-item" id="nav-settings">通知設定</div>
+            <div class="menu-item" id="nav-keyword">キーワードの変更</div>
+        </div>
+        <div class="bottom-row">
+            <div class="header-label">日時</div>
+            <div class="header-label">聞かれた内容</div>
+        </div>
+        <div class="log-area">
+            <div class="log-datetime-col"></div>
+            <div class="log-content-col">log</div>
+        </div>
+    </div>
+
+    <div class="settings-panel" id="settings-view">
+        <div class="panel-header">
+            <h2>通知設定</h2>
+            <button class="nav-btn" id="save-settings-btn">保存して戻る</button>
+        </div>
+        
+        <div class="setting-row">
+            <div class="setting-info"><div class="title">会話ログ送信</div></div>
+            <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+        </div>
+        
+        <div class="setting-row sub-item">
+            <div class="setting-info"><div class="title">└ 画像添付</div></div>
+            <label class="switch"><input type="checkbox"><span class="slider"></span></label>
+        </div>
+        
+        <div class="setting-row">
+            <div class="setting-info"><div class="title">定期的な通知</div></div>
+            <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+        </div>
+
+        <div class="setting-row">
+            <div class="setting-info">
+                <div class="title">LINE連携設定</div>
+                <div class="description">line messaging apiのステータスを表示しています</div>
+            </div>
+            <div style="display: flex; align-items: center;">
+                <button class="btn-disconnect" onclick="alert('連携を解除しますか？')">連携解除</button>
+                <label class="switch">
+                    <input type="checkbox" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="keyword-panel" id="keyword-view">
+        <div class="top-left-nav"><button class="nav-btn" id="keyword-back-btn">戻る</button></div>
+        <div class="keyword-content">
+            <h2>キーワードの変更</h2>
+            <input type="text" class="keyword-input" placeholder="新しいキーワードを入力してください">
+        </div>
+        <div class="bottom-right-nav"><button class="btn-save" id="keyword-save-btn">保存</button></div>
+    </div>
+
+</div>
+
+<div class="modal-overlay" id="logout-modal">
+    <div class="modal-box">
+        <div class="modal-title">本当にログアウトしますか？</div>
+        <div class="modal-actions">
+            <button class="modal-btn btn-yes" id="modal-yes-btn">yes</button>
+            <button class="modal-btn btn-no" id="modal-no-btn">no</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const mainView = document.getElementById('main-view');
+    const settingsView = document.getElementById('settings-view');
+    const keywordView = document.getElementById('keyword-view');
+    const logoutModal = document.getElementById('logout-modal');
+
+    function showView(view) {
+        [mainView, settingsView, keywordView].forEach(v => v.style.display = 'none');
+        if(view === mainView) view.style.display = 'grid';
+        else if(view === keywordView) view.style.display = 'flex';
+        else view.style.display = 'block';
+    }
+
+    document.getElementById('nav-settings').onclick = () => showView(settingsView);
+    document.getElementById('nav-keyword').onclick = () => showView(keywordView);
+    document.getElementById('save-settings-btn').onclick = () => showView(mainView);
+    document.getElementById('keyword-back-btn').onclick = () => showView(mainView);
+    document.getElementById('keyword-save-btn').onclick = () => { alert("保存しました"); showView(mainView); };
+
+    document.getElementById('nav-logout').onclick = () => logoutModal.style.display = 'flex';
+    document.getElementById('modal-no-btn').onclick = () => logoutModal.style.display = 'none';
+    document.getElementById('modal-yes-btn').onclick = () => window.location.href = 'login.html';
+</script>
+</body>
+</html>

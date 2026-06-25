@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ログイン - AI見守りアシスタント (Mobile)</title>
+    <style>
+        /* ==========================================
+           1. ベーススタイル（PC版の白・青テーマを継承）
+           ========================================== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #f5f5f5; /* PC版と同じ、少しグレーがかった落ち着いた背景 */
+            color: #333333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* ==========================================
+           2. ログインカード（スマホに合わせた縦長配置）
+           ========================================== */
+        .login-card {
+            background-color: #ffffff; /* 白いカード型コンテナ */
+            width: 100%;
+            max-width: 400px;
+            padding: 40px 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        /* タイトル */
+        .login-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 32px;
+            color: #000000;
+        }
+
+        /* フォーム要素 */
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333333;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px; /* iPhoneでの自動ズームを防ぐサイズ */
+            border: 1px solid #cccccc;
+            border-radius: 6px;
+            outline: none;
+            color: #333333;
+            transition: border-color 0.2s;
+        }
+
+        .input-field::placeholder {
+            color: #aaaaaa;
+        }
+
+        .input-field:focus {
+            border-color: #007bff; /* フォーカス時は青枠 */
+        }
+
+        /* パスワードを忘れた場合（青いリンク） */
+        .forgot-link-container {
+            margin-top: 12px;
+            margin-bottom: 32px;
+        }
+
+        .forgot-link {
+            color: #007bff;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        /* 次へボタン（PC版の鮮やかな青を再現） */
+        .btn-next {
+            display: block;
+            width: 100%;
+            background-color: #007bff; /* PC版と同じ鮮やかな青 */
+            color: #ffffff;
+            border: none;
+            border-radius: 6px;
+            padding: 16px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            transition: background-color 0.2s;
+        }
+
+        .btn-next:active {
+            background-color: #0056b3; /* タップした時に少し濃い青に */
+        }
+
+        /* 新規登録（画面上部にあったものを、スマホ用にカード最下部へ自然に配置） */
+        .signup-container {
+            margin-top: 32px;
+            text-align: center;
+            font-size: 14px;
+            color: #666666;
+        }
+
+        .signup-link {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 700;
+            margin-left: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <h1 class="login-title">ログイン</h1>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">電話番号またはメールアドレス</label>
+                <input type="text" id="username" class="input-field" placeholder="example@mail.com / 09012345678" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">パスワード</label>
+                <input type="password" id="password" class="input-field" required>
+            </div>
+
+            <div class="forgot-link-container">
+                <a href="mobile-forgot.html" class="forgot-link">パスワードを忘れた場合</a>
+            </div>
+
+            <button type="submit" class="btn-next">次へ</button>
+        </form>
+
+        <div class="signup-container">
+            <span>登録がまだの場合</span>
+            <a href="mobile-register.html" class="signup-link">新規登録へ</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            // メイン画面へ遷移する処理
+            window.location.href = 'mobile-dashboard.html';
+        });
+    </script>
+</body>
+</html>

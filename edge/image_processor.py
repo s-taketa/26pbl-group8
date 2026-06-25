@@ -1,6 +1,14 @@
 class ImageProcessor:
     # カメラ映像の取得と、NoIRカメラ特有の青みを補正する処理
 
-    def imageRecognition(self):
-        # カメラで画像をキャプチャし、NoIRカメラ用の青み補正（RGB入れ替え）を行って一時保存する
+    def captureImage(self):
+        # カメラで画像をキャプチャする
+        pass
+    
+    def correctBlueShift(self, image):
+        # NoIRカメラ用の青み補正(RGB入れ替え)
+        pass
+
+    def saveImage(self, image, filename=None):
+        # キャプチャした画像を一時保存
         pass
