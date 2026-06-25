@@ -33,3 +33,6 @@ python-json-logger==2.0.7
 
 # 型チェック・開発ツール（オプション）
 pydantic==2.5.0
+
+#linebot
+line-bot-sdk
