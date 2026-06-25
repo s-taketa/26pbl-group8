@@ -2,9 +2,8 @@ import os
 import sys
 import json
 import time
+import audioop
 import pyaudio
-import math
-import array
 from vosk import Model, KaldiRecognizer
 
 class KeywordListener:
@@ -12,7 +11,7 @@ class KeywordListener:
         self.model_path = model_path
         self.sample_rate = sample_rate
         self.chunk_size = chunk_size
-        self.keywords = ["チャピー", "起動して"]
+        self.keywords = ["おにいちゃん", "起動して"]
         
         self.audio_interface = None
         self.audio_stream = None
@@ -77,24 +76,25 @@ class KeywordListener:
             self.audio_stream = None
             print("[INFO] マイクを一時的にミュート（解放）しました。")
 
-    def removeNoise(self, audioData: bytes) -> bytes:
-        try:
-            samples = array.array('h', audioData)
-        except ValueError:
-            return None
-            
-        if not samples:
-            return None
-            
-        sum_squares = sum(s * s for s in samples)
-        rms = math.sqrt(sum_squares / len(samples))
-        
-        LOWER_THRESHOLD = 50
-        UPPER_THRESHOLD = 30000
+    # 無音/過大入力の判定しきい値（16bit PCMのRMS）
+    LOWER_THRESHOLD = 50
+    UPPER_THRESHOLD = 30000
 
-        if rms < LOWER_THRESHOLD or rms > UPPER_THRESHOLD:
+    def _rms(self, audioData: bytes) -> float:
+        """16bit PCMのRMSをC実装(audioop)で高速計算する"""
+        if not audioData:
+            return 0.0
+        try:
+            return audioop.rms(audioData, 2)  # 2 = 16bit(2バイト)
+        except audioop.error:
+            return 0.0
+
+    def removeNoise(self, audioData: bytes) -> bytes:
+        # 旧実装は4000サンプルを純Pythonで毎チャンク二乗和しており、
+        # 常時監視中ずっとCPUを消費していた。audioop.rms に置き換え。
+        rms = self._rms(audioData)
+        if rms < self.LOWER_THRESHOLD or rms > self.UPPER_THRESHOLD:
             return None
-            
         return audioData
 
     def detectKeyword(self) -> bool:
@@ -134,32 +134,45 @@ class KeywordListener:
                 self.audio_interface = None
             return False
 
-    def listen_command(self, timeout: int = 5) -> str:
+    # 発話とみなすRMSしきい値（これ未満は無音扱い）
+    VOICE_THRESHOLD = 150
+
+    def listen_command(self, timeout: int = 5, silence_limit: float = 0.8) -> str:
         """
         ウェイクワード検知後、マイクを開いたまま続けてユーザーの命令を聞き取ります。
-        沈黙（話し終わり）を検知するか、タイムアウトするとテキストを返します。
+        いったん発話を検知した後に silence_limit 秒の無音が続けば即終了します。
+        （旧実装は無音チャンクをVoskに渡さず終端検知が働かないため、ほぼ毎回
+          timeout いっぱい待っていた。RMSベースの無音判定で早期に打ち切る）
         """
         print("\n🗣️ 「ピロッ♪」 （ご用件をどうぞ！最大5秒待機します）")
         start_time = time.time()
-        
+        last_voice_time = None  # 最後に「声」を検知した時刻
+
         try:
             while time.time() - start_time < timeout:
                 data = self.audio_stream.read(self.chunk_size, exception_on_overflow=False)
                 clean_data = self.removeNoise(data)
-                if clean_data is None:
-                    continue
-                    
-                # AcceptWaveform はユーザーが「話し終わった（沈黙した）」瞬間に True になります
-                if self.recognizer.AcceptWaveform(clean_data):
-                    result = json.loads(self.recognizer.Result())
-                    text = result.get("text", "").replace(" ", "")
-                    if text:
-                        return text
-                        
-            # タイムアウトした場合、途中まで話していた内容を取り出す
+
+                if clean_data is not None:
+                    # 発話中かどうかを判定（しきい値以上のときだけ更新）
+                    if self._rms(clean_data) >= self.VOICE_THRESHOLD:
+                        last_voice_time = time.time()
+
+                    # AcceptWaveform は話し終わり（沈黙）の瞬間に True になります
+                    if self.recognizer.AcceptWaveform(clean_data):
+                        result = json.loads(self.recognizer.Result())
+                        text = result.get("text", "").replace(" ", "")
+                        if text:
+                            return text
+
+                # いったん喋ってから一定時間無音が続いたら打ち切る
+                if last_voice_time is not None and (time.time() - last_voice_time) > silence_limit:
+                    break
+
+            # 途中まで話していた内容を取り出す
             result = json.loads(self.recognizer.FinalResult())
             return result.get("text", "").replace(" ", "")
-            
+
         except Exception as e:
             print(f"[ERROR] 命令の取得中にエラーが発生しました: {e}")
             return ""
