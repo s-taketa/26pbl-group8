@@ -3,22 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ログイン | AI見守りアシスタント</title>
+    <title>新規登録 | AI見守りアシスタント</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="register-box">
-        <span>登録がまだの場合</span>
-        <a href="register.html" class="register-link">新規登録へ</a>
-    </div>
-
-    <main class="login-container">
-        <h1>ログイン</h1>
+    <main class="register-container">
+        <div class="register-header">
+            <a href="login.html" class="back-btn" id="back-btn">戻る</a>
+            <h1>登録</h1>
+        </div>
 
         <!-- サーバーからのエラー/通知をここに表示。alert() は使わない -->
         <div id="form-message" class="form-message" role="alert" aria-live="assertive" hidden></div>
 
-        <form id="login-form" novalidate>
+        <form id="register-form" novalidate>
             <div class="form-group">
                 <label for="login-id">電話番号またはメールアドレス</label>
                 <input
@@ -39,19 +37,33 @@
                     type="password"
                     id="password"
                     name="password"
-                    autocomplete="current-password"
+                    autocomplete="new-password"
                     required
                 >
                 <p class="field-error" id="password-error" hidden></p>
-                <a href="forgot-password.html" class="forgot">パスワードを忘れた場合</a>
             </div>
 
-            <button type="submit" id="next-btn">
-                <span class="btn-label">次へ</span>
-            </button>
+            <div class="form-group form-group--confirm">
+                <label for="password-confirm" class="sr-only">パスワード（確認）</label>
+                <input
+                    type="password"
+                    id="password-confirm"
+                    name="password-confirm"
+                    autocomplete="new-password"
+                    placeholder="パスワード（確認）"
+                    required
+                >
+                <p class="field-error" id="password-confirm-error" hidden></p>
+            </div>
+
+            <div class="submit-row">
+                <button type="submit" id="submit-btn">
+                    <span class="btn-label">登録完了</span>
+                </button>
+            </div>
         </form>
     </main>
 
-    <script src="login.js"></script>
+    <script src="register.js"></script>
 </body>
 </html>
