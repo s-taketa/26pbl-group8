@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>パスワードを忘れた場合 - AI見守りアシスタント (Mobile)</title>
+    <style>
+        /* ==========================================
+           1. ベーススタイル（PC版の白・青テーマを継承）
+           ========================================== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #f5f5f5; /* PC版と同じ落ち着いた背景色 */
+            color: #333333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* ==========================================
+           2. 復旧画面カード
+           ========================================== */
+        .forgot-card {
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 400px;
+            padding: 32px 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+
+        /* 戻るボタン（左上） */
+        .back-link {
+            display: inline-block;
+            color: #007bff;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            transition: opacity 0.2s;
+        }
+        .back-link:active { opacity: 0.6; }
+
+        /* タイトル */
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #000000;
+        }
+
+        /* 説明文 */
+        .description {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #666666;
+            margin-bottom: 32px;
+        }
+
+        /* フォーム */
+        .form-group {
+            margin-bottom: 24px; /* エラー表示スペースを考慮して少し調整 */
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #333333;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px; /* iPhone自動ズーム防止 */
+            border: 1px solid #cccccc;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .input-field:focus {
+            border-color: #007bff;
+        }
+
+        /* 🔴 エラーメッセージ（間違えた場合に表示される赤文字） */
+        .error-text {
+            color: #ff0000;
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 8px;
+            display: none; /* 初期状態は非表示 */
+        }
+
+        /* 送信ボタン */
+        .btn-submit {
+            display: block;
+            width: 100%;
+            background-color: #007bff;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 18px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: center;
+            margin-top: 32px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-submit:active {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="forgot-card">
+        <a href="mobile-login.html" class="back-link">← 戻る</a>
+
+        <h1 class="page-title">パスワードを忘れた場合</h1>
+        
+        <p class="description">
+            登録されたメールアドレスまたは電話番号を入力してください。パスワード再設定用のコードを送信します。
+        </p>
+
+        <form id="forgotForm">
+            <div class="form-group">
+                <label for="id-input">メールアドレスまたは電話番号</label>
+                <input type="text" id="id-input" class="input-field" placeholder="example@mail.com" required>
+                <div id="error-message" class="error-text">このメールアドレスまたは電話番号は登録されていません</div>
+            </div>
+
+            <button type="submit" class="btn-submit">送信して次へ</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('forgotForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const inputVal = document.getElementById('id-input').value;
+            const errorEl = document.getElementById('error-message');
+
+            // 【シミュレーション用の挙動】
+            // テスト用に「error」と入力してボタンを押すと、登録なしエラーが赤文字で表示されます。
+            // それ以外の適当な文字（例：test@mail.comなど）を入力すると、次の認証コード確認画面（シミュレート）へ遷移します。
+            if (inputVal === "error") {
+                errorEl.style.display = 'block';
+                document.getElementById('id-input').style.borderColor = '#ff0000'; // 入力枠も赤くして分かりやすく
+            } else {
+                errorEl.style.display = 'none';
+                document.getElementById('id-input').style.borderColor = '#cccccc';
+                
+                // 成功したら次の「4桁の確認コード入力画面」へ
+                alert("再設定用コードを送信しました。確認画面へ進みます。");
+                window.location.href = 'mobile-verify-code.html';
+            }
+        });
+
+        // ユーザーが再度文字を入力し始めたら、自動的に赤文字エラーを消す親切設計
+        document.getElementById('id-input').addEventListener('input', function() {
+            document.getElementById('error-message').style.display = 'none';
+            this.style.borderColor = '#cccccc';
+        });
+    </script>
+</body>
+</html>
