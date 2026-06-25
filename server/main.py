@@ -5,72 +5,81 @@ import io
 import os
 import uuid
 
-# DB とコントローラ
-from database import DatabaseManager
+# 追加ユーティリティ（オプション）
+try:
+    import struct
+    import json
+except Exception:
+    struct = None
+    json = None
 
-# AI ロジックを使う（なければフォールバック）
+# DB とコントローラ（存在しない場合は簡易フォールバック）
+try:
+    from database import DatabaseManager
+    db = DatabaseManager()
+except Exception:
+    db = None
+    def _dummy_get_recognition_history(limit=5):
+        return []
+    class DatabaseManager:
+        def getRecognitionHistory(self, limit=5):
+            return _dummy_get_recognition_history(limit)
+
+# AI ロジック（存在しない場合はフォールバック）
 try:
     from ai_logic import processResponse
 except Exception:
     def processResponse(image, command):
-        # フォールバック: 実装未完時のダミー応答
         return {"answer": "（AI未実装）", "is_emergency": 0, "category": None, "alert_message": None}
 
+# VoiceHandler（存在しない場合は無視）
+try:
+    from voice_handler import VoiceHandler
+    voice_handler = VoiceHandler()
+except Exception:
+    voice_handler = None
 
 app = Flask(__name__)
-app.secret_key = os.getenv("FLASK_SECRET_KEY", "change-this-secret-key")  # 本番は環境変数化
-
-db = DatabaseManager()
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "change-this-secret-key")
 IMAGE_STORAGE_DIR = os.getenv("IMAGE_STORAGE_DIR", "/app/images")
-
 
 class MainController:
     # 管理・認証を扱うサーバーサイドのメインクラス
 
     def authenticateUser(self, login_id, password_hash):
         """ログインIDとパスワードの照合"""
-        user = db.getUserByEmail(login_id)
-        if user and user.password_hash == password_hash:
-            return True
+        if db:
+            user = db.getUserByEmail(login_id)
+            if user and user.password_hash == password_hash:
+                return True
         return False
 
     def getDashboardData(self):
         # フロントエンド用：最新ログの取得
-        logs = db.getRecognitionHistory(limit=5)
-        return [{"query": log.user_query, "response": log.ai_response} for log in logs]
+        if db:
+            logs = db.getRecognitionHistory(limit=5)
+            return [{"query": log.user_query, "response": log.ai_response} for log in logs]
+        return []
 
-    # 以下はスタブ。実装を適宜追加してください。
+    # スタブ実装
     def sendAuthCode(self):
-        # TODO: 認証コードを送信する実装
         pass
-
     def validateAuthCode(self, code):
-        # TODO: 受け取ったコードの検証処理
         return True
-
     def resetPassword(self):
-        # TODO: パスワードリセット処理
         pass
-
     def syncSettingsToEdge(self):
-        # TODO: システム設定をラズパイ等エッジに反映する処理
         pass
-
     def sendRecognitionCommand(self):
-        # 司令塔としてエッジ（ラズパイ）に認識開始の命令を出す
         pass
-
 
 controller = MainController()
 
-
 # ==================== AI連携エンドポイント ====================
-
 @app.route('/api/recognition', methods=['POST'])
 def receive_recognition():
     """
-    ラズパイから画像とコマンド（テキスト）を受け取り、
-    Gemini APIで解析した結果を返すエンドポイント。
+    ラズパイから画像とコマンド（テキスト）を受け取り、解析した結果を返す（JSON）。
     受信形式: multipart/form-data
       - image  : 画像ファイル（capture.jpg）
       - command: 利用者の発話テキスト
@@ -103,48 +112,45 @@ def receive_recognition():
             print(f"[ALERT] 緊急検知: {result.get('category')} - {result.get('alert_message')}")
             # TODO: send LINE 等の外部通知を行う
 
-        # DB 保存（DB担当の実装に応じて有効化）
-        # log_entry = {
-        #     "user_id": 1,
-        #     "image_path": saved_path,
-        #     "user_query": command,
-        #     "ai_response": result.get("answer"),
-        #     "is_emergency": result.get("is_emergency"),
-        # }
-        # db.writeRecognitionLog(log_entry)
+        """
+	DB 保存（DB の実装に応じて有効化）
+        if db:
+            log_entry = {
+                "user_id": 1,
+                "image_path": saved_path,
+                "user_query": command,
+                "ai_response": result.get("answer"),
+                "is_emergency": result.get("is_emergency"),
+            }
+            db.writeRecognitionLog(log_entry)
+	"""
 
         return jsonify({"answer_text": result.get("answer")})
     except Exception as e:
         print(f"[ERROR] 処理中にエラー: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
-
 @app.route('/api/heartbeat', methods=['GET'])
 def heartbeat():
-    """heartbeatCheck() 対応エンドポイント。ラズパイからの死活確認に200を返すだけ。"""
+    # heartbeatCheck() 対応エンドポイント。ラズパイからの死活確認に200を返すだけ。
     return jsonify({"status": "ok"}), 200
 
-
 # ==================== 認証・管理エンドポイント ====================
-
 @app.route('/api/login', methods=['POST'])
 def login():
     data = request.get_json()
     user_id = data.get("id")
     password = data.get("password")
-
     success = controller.authenticateUser(user_id, password)
     if success:
         session["user_id"] = user_id
         return jsonify({"status": "ok"})
     return jsonify({"status": "error", "message": "認証失敗"}), 401
 
-
 @app.route('/api/send-auth-code', methods=['POST'])
 def send_auth_code():
     controller.sendAuthCode()
     return jsonify({"status": "ok", "message": "認証コードを送信しました"})
-
 
 @app.route('/api/validate-auth-code', methods=['POST'])
 def validate_auth_code():
@@ -155,29 +161,24 @@ def validate_auth_code():
         return jsonify({"status": "ok"})
     return jsonify({"status": "error", "message": "コードが正しくありません"}), 400
 
-
 @app.route('/api/reset-password', methods=['POST'])
 def reset_password():
     controller.resetPassword()
     return jsonify({"status": "ok", "message": "パスワードを更新しました"})
-
 
 @app.route('/api/dashboard', methods=['GET'])
 def dashboard():
     data = controller.getDashboardData()
     return jsonify(data)
 
-
 @app.route('/api/sync-settings', methods=['POST'])
 def sync_settings():
     controller.syncSettingsToEdge()
     return jsonify({"status": "ok", "message": "ラズパイへ設定を反映しました"})
 
-
 @app.route('/')
 def hello():
     return "見守りサーバー起動成功！データベース連携の準備完了です！"
-
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)

@@ -38,10 +38,21 @@ SYSTEM_INSTRUCTION = """
 - "other_emergency" : その他の緊急事態
 """
 
+# --- 生成設定（軽量化・高速化） ---
+# response_mime_type で必ずJSONを返させ、コードブロック除去パースを不要にする。
+# max_output_tokens で冗長な出力を抑え、生成時間とパース負荷を削減する。
+GENERATION_CONFIG = {
+    "response_mime_type": "application/json",
+    "max_output_tokens": 512,
+    "temperature": 0.4,
+}
+
 # --- モデルのインスタンス化 ---
+# さらに高速化したい場合は "gemini-2.5-flash-lite" に切替（精度とのトレードオフ）。
 model = genai.GenerativeModel(
     model_name="gemini-2.5-flash",
     system_instruction=SYSTEM_INSTRUCTION,
+    generation_config=GENERATION_CONFIG,
 )
 
 
