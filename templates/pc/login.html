@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ログイン | AI見守りアシスタント</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="register-box">
+        <span>登録がまだの場合</span>
+        <a href="register.html" class="register-link">新規登録へ</a>
+    </div>
+
+    <main class="login-container">
+        <h1>ログイン</h1>
+
+        <!-- サーバーからのエラー/通知をここに表示。alert() は使わない -->
+        <div id="form-message" class="form-message" role="alert" aria-live="assertive" hidden></div>
+
+        <form id="login-form" novalidate>
+            <div class="form-group">
+                <label for="login-id">電話番号またはメールアドレス</label>
+                <input
+                    type="text"
+                    id="login-id"
+                    name="login-id"
+                    inputmode="email"
+                    autocomplete="username"
+                    placeholder="example@mail.com / 09012345678"
+                    required
+                >
+                <p class="field-error" id="login-id-error" hidden></p>
+            </div>
+
+            <div class="form-group">
+                <label for="password">パスワード</label>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    autocomplete="current-password"
+                    required
+                >
+                <p class="field-error" id="password-error" hidden></p>
+                <a href="forgot-password.html" class="forgot">パスワードを忘れた場合</a>
+            </div>
+
+            <button type="submit" id="next-btn">
+                <span class="btn-label">次へ</span>
+            </button>
+        </form>
+    </main>
+
+    <script src="login.js"></script>
+</body>
+</html>

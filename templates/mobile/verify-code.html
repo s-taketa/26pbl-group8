@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>コード確認 - AI見守りアシスタント</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .verify-card {
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 400px;
+            padding: 32px 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .back-link {
+            display: inline-block;
+            color: #007bff;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+
+        .description {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #666666;
+            margin-bottom: 32px;
+        }
+
+        /* 4桁入力ボックスのレイアウト */
+        .code-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .code-input {
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+            font-weight: 700;
+            text-align: center;
+            border: 1px solid #cccccc;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .code-input:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+
+        /* エラー表示 */
+        .error-message {
+            color: #ff0000;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            min-height: 1.2em;
+            display: none; /* 初期は非表示 */
+        }
+
+        .btn-verify {
+            width: 100%;
+            background-color: #007bff;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 18px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-verify:active {
+            background-color: #0056b3;
+        }
+
+        .resend-container {
+            margin-top: 32px;
+            text-align: center;
+            font-size: 14px;
+            color: #666666;
+        }
+
+        .resend-link {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="verify-card">
+        <a href="mobile-forgot.html" class="back-link">← 戻る</a>
+
+        <h1 class="page-title">認証コードを入力</h1>
+        <p class="description">
+            ご指定の連絡先に送信された4桁の認証コードを入力してください。
+        </p>
+
+        <form id="verifyForm">
+            <div class="code-container">
+                <input type="tel" class="code-input" maxlength="1" pattern="\d*" required autofocus>
+                <input type="tel" class="code-input" maxlength="1" pattern="\d*" required>
+                <input type="tel" class="code-input" maxlength="1" pattern="\d*" required>
+                <input type="tel" class="code-input" maxlength="1" pattern="\d*" required>
+            </div>
+
+            <div id="error-message" class="error-message">認証コードが違います。</div>
+
+            <button type="submit" class="btn-verify">認証して次へ</button>
+        </form>
+
+        <div class="resend-container">
+            <span>コードが届かない場合</span><br>
+            <a href="#" class="resend-link">コードを再送する</a>
+        </div>
+    </div>
+
+    <script>
+        const inputs = document.querySelectorAll('.code-input');
+        const form = document.getElementById('verifyForm');
+        const errorMsg = document.getElementById('error-message');
+
+        // 入力時の自動フォーカス移動
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                if (e.target.value.length === 1 && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+                // 入力があったらエラーを隠す
+                errorMsg.style.display = 'none';
+                inputs.forEach(i => i.style.borderColor = '#cccccc');
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && e.target.value.length === 0 && index > 0) {
+                    inputs[index - 1].focus();
+                }
+            });
+        });
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            // 入力されたコードを取得
+            const enteredCode = Array.from(inputs).map(i => i.value).join('');
+
+            // 【シミュレーション】
+            // 正解を "1234" とした場合の挙動
+            if (enteredCode === "1234") {
+                alert("認証に成功しました！新しいパスワード設定画面へ進みます。");
+                window.location.href = 'mobile-new-password.html';
+            } else {
+                // ご要望の「認証コードが違います。」を赤文字で表示
+                errorMsg.style.display = 'block';
+                inputs.forEach(i => {
+                    i.style.borderColor = '#ff0000';
+                });
+            }
+        });
+    </script>
+</body>
+</html>
+

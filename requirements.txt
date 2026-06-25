@@ -8,12 +8,13 @@ uvicorn==0.24.0
 # データベース
 mysql-connector-python==8.2.0
 SQLAlchemy==2.0.23
+PyMySQL==1.1.0
 
 # 映像処理
 opencv-python==4.8.1.78
 
 # AI / 機械学習
-google-generativeai==0.3.0
+google-generativeai>=0.8.0
 
 # 音声処理
 vosk==0.3.45
@@ -32,3 +33,5 @@ python-json-logger==2.0.7
 
 # 型チェック・開発ツール（オプション）
 pydantic==2.5.0
+#linebot
+line-bot-sdk
