@@ -33,7 +33,7 @@ COPY . .
 
 # 環境変数の設定（デフォルト値）
 # 本番運用時は docker-compose.yml または .env ファイルで上書きされます
-ENV FLASK_APP=app.py \
+ENV FLASK_APP=server/main.py \
     FLASK_ENV=production \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
@@ -46,6 +46,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD curl -f http://localhost:5000/health || exit 1
 
 # アプリケーションの起動
-# Flask の場合: python app.py
-# FastAPI の場合: uvicorn app:app --host 0.0.0.0 --port 8000
-CMD ["python", "app.py"]
+CMD ["python", "server/main.py"]
