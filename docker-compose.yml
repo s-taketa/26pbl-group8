@@ -17,10 +17,10 @@ services:
       VOICEVOX_HOST: voicevox
       VOICEVOX_PORT: 50021
       # アプリケーション設定
-      FLASK_APP: edge/app.py
+      FLASK_APP: server/main.py
       FLASK_ENV: ${FLASK_ENV:-production}
       PYTHONUNBUFFERED: 1
-    command: python edge/app.py
+    command: python server/main.py
     ports:
       - "5000:5000" # Flask 用ポート
       - "8000:8000" # FastAPI 用ポート（複数ポート対応）

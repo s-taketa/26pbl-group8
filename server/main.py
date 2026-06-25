@@ -1,12 +1,15 @@
 # server/main.py（サーバー側のFlaskアプリ本体）
 
-from flask import Flask, request, jsonify, session
+from flask import Flask, request, jsonify, session, Response
 from PIL import Image
 import io
 import os
+import json
+import struct
 import uuid
 
 from ai_logic import processResponse
+from voice_handler import VoiceHandler
 from main_controller import MainController
 # from database import DatabaseManager   # ← DB担当が実装予定。実装完了後にコメント解除
 # from line_notifier import send_line_alert   # 浅尾さん担当（緊急通知）
@@ -15,9 +18,15 @@ app = Flask(__name__)
 app.secret_key = "change-this-secret-key"  # 本番では環境変数化すること
 
 controller = MainController()
+voice_handler = VoiceHandler()
 # db_manager = DatabaseManager()   # ← DB担当の実装完了後にコメント解除
 
 IMAGE_STORAGE_DIR = "/app/images"
+
+
+def _frame(payload: bytes) -> bytes:
+    """ストリーム1フレーム = 4バイトの長さ接頭辞(BE) + 本体"""
+    return struct.pack(">I", len(payload)) + payload
 
 
 # ==================== AI連携エンドポイント（自分の担当） ====================
@@ -32,8 +41,10 @@ def receive_recognition():
       - image  : 画像ファイル（capture.jpg）
       - command: 利用者の発話テキスト
 
-    返却形式: JSON
-      {"answer_text": "..."}
+    返却形式: フレーム連結ストリーム（application/octet-stream）
+      各フレーム = 4バイト長(BE) + 本体
+      - 1フレーム目 : メタJSON {"answer_text": "...", "is_emergency": 0}
+      - 2フレーム目〜: 文ごとのVOICEVOX合成WAV（合成でき次第すぐ送出）
     """
     if "image" not in request.files:
         return jsonify({"status": "error", "message": "画像が含まれていません"}), 400
@@ -79,12 +90,27 @@ def receive_recognition():
         # db_manager.writeRecognitionLog(log_entry)
         print(f"[DB] (未実装のためスキップ) 保存予定だったログ: query={command}, answer={result.get('answer')}")
 
-        # --- ラズパイへ回答テキストを返す ---
-        return jsonify({"answer_text": result.get("answer")})
-
     except Exception as e:
         print(f"[ERROR] 処理中にエラー: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
+
+    # --- ラズパイへ「回答テキスト＋文ごとの音声」をストリーミング返却 ---
+    # 1フレーム目にメタJSON、以降は文ごとのWAV。合成でき次第すぐ流すので、
+    # エッジは最初の一文が届いた時点で再生を始められる。
+    answer = result.get("answer", "") or ""
+
+    def generate():
+        meta = json.dumps(
+            {"answer_text": answer, "is_emergency": result.get("is_emergency", 0)},
+            ensure_ascii=False,
+        ).encode("utf-8")
+        yield _frame(meta)
+
+        for index, wav in enumerate(voice_handler.synthesize_stream(answer), start=1):
+            print(f"[TTS] 第{index}文を送信 ({len(wav)} bytes)")
+            yield _frame(wav)
+
+    return Response(generate(), mimetype="application/octet-stream")
 
 
 @app.route('/api/heartbeat', methods=['GET'])
