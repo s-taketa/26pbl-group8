@@ -7,9 +7,10 @@ class LineNotifier:
 
     def __init__(self):
         # LINE Notifier の初期化
-        self.line_token = os.getenv("LINE_TOKEN")
+        # 標準的な LINE_CHANNEL_ACCESS_TOKEN を優先し、旧名 LINE_TOKEN もフォールバックで許可
+        self.line_token = os.getenv("LINE_CHANNEL_ACCESS_TOKEN") or os.getenv("LINE_TOKEN")
         if not self.line_token:
-            raise ValueError("エラー: LINE_TOKENが設定されていません。")
+            raise ValueError("エラー: LINE_CHANNEL_ACCESS_TOKEN(またはLINE_TOKEN)が設定されていません。")
 
     def validateLineToken(self, token):
         # LINE API トークンの有効性確認

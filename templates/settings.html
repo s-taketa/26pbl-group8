@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>通知・詳細設定｜OLEC 見守りアシスタント</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <span class="brand">OLEC<small>AI見守りアシスタント</small></span>
+    <span class="spacer"></span>
+    <span class="user"><span class="avatar">{{ user_name[0] if user_name else '?' }}</span>{{ user_name }}　<a href="/logout">ログアウト</a></span>
+  </div>
+
+  <div class="shell">
+    <nav class="sidebar">
+      <a class="nav-item" href="/"><span class="ic">🏠</span>ダッシュボード</a>
+      <a class="nav-item" href="/logs"><span class="ic">🕓</span>履歴ログ</a>
+      <a class="nav-item active" href="/settings"><span class="ic">🔔</span>通知設定</a>
+      <a class="nav-item" href="/logout"><span class="ic">⏻</span>ログアウト</a>
+    </nav>
+
+    <main class="content">
+      <h2 class="page-title">通知・詳細設定</h2>
+
+      <div id="formMessage" class="form-message" style="display:none; max-width:640px;"></div>
+
+      <section class="card settings-card">
+        <div class="card-body">
+          <div class="setting-row">
+            <div><div class="label">会話ログ送信</div><div class="desc">家族へ会話の履歴を送信します</div></div>
+            <label class="switch"><input type="checkbox" id="notify_conversation_log"><span></span></label>
+          </div>
+          <div class="setting-row">
+            <div><div class="label">定期的な通知</div><div class="desc">一定時間ごとに見守り状況を通知します</div></div>
+            <label class="switch"><input type="checkbox" id="notify_periodic"><span></span></label>
+          </div>
+          <div class="setting-row">
+            <div><div class="label">ウェイクワード（キーワード）</div><div class="desc">エッジが反応する呼びかけの言葉</div></div>
+            <input class="text-input" type="text" id="keyword" maxlength="20" placeholder="例: チャピー">
+          </div>
+          <div class="setting-row">
+            <div><div class="label">表示名</div><div class="desc">管理画面に表示するお名前</div></div>
+            <input class="text-input" type="text" id="user_name" maxlength="20" placeholder="例: 河原 たろう">
+          </div>
+
+          <div class="settings-actions">
+            <span class="grow"></span>
+            <button class="btn btn-primary" id="saveBtn" type="button"><span class="btn-label">保存</span></button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

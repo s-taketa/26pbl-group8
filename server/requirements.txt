@@ -1,8 +1,37 @@
-Flask==3.0.0
+# AI見守りアシスタント - Python 依存ライブラリ
+
+# Web フレームワーク
+Flask==2.3.3
+FastAPI==0.104.1
+uvicorn==0.24.0
+
+# データベース
+mysql-connector-python==8.2.0
+PyMySQL==1.1.1
 SQLAlchemy==2.0.23
-PyMySQL==1.1.0
+
+# 映像処理
+opencv-python==4.8.1.78
+
+# AI / 機械学習
+google-generativeai>=0.8.0
+
+# 音声処理
+vosk==0.3.45
+SpeechRecognition==3.10.0
+pydub==0.25.1
+
+# HTTP クライアント
 requests==2.31.0
 
-# AI担当メンバー用（Gemini, Whisper） 
-google-generativeai 
-openai 
+# ユーティリティ
+python-dotenv==1.0.0
+Pillow==10.1.0
+
+# ログ・デバッグ
+python-json-logger==2.0.7
+
+# 型チェック・開発ツール（オプション）
+pydantic==2.5.0
+#linebot
+line-bot-sdk

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ログイン｜OLEC 見守りアシスタント</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="register-box">
+    アカウントをお持ちでない方は
+    <a class="register-link" href="/register">新規登録</a>
+  </div>
+
+  <div class="login-container">
+    <h1>ログイン</h1>
+
+    <div id="formMessage" class="form-message" style="display:none;"></div>
+
+    <form id="loginForm" novalidate>
+      <div class="form-group">
+        <label for="loginId">電話番号またはメールアドレス</label>
+        <input id="loginId" name="id" type="text" autocomplete="username" placeholder="例: admin@example.com">
+        <p class="field-error" id="err-id"></p>
+      </div>
+
+      <div class="form-group">
+        <label for="password">パスワード</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" placeholder="パスワード">
+        <p class="field-error" id="err-pw"></p>
+      </div>
+
+      <button type="submit" id="loginBtn"><span class="btn-label">ログイン</span></button>
+      <a class="forgot" href="#">パスワードを忘れた場合</a>
+    </form>
+
+    <p style="font-size:12px;color:#888;margin-top:18px;">
+      初期アカウント：<b>admin@example.com</b> ／ <b>password123</b>
+    </p>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

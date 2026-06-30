@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ダッシュボード｜OLEC 見守りアシスタント</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <span class="brand">OLEC<small>AI見守りアシスタント</small></span>
+    <span class="spacer"></span>
+    <span class="user"><span class="avatar">{{ user_name[0] if user_name else '?' }}</span>{{ user_name }}　<a href="/logout">ログアウト</a></span>
+  </div>
+
+  <div class="shell">
+    <nav class="sidebar">
+      <a class="nav-item active" href="/"><span class="ic">🏠</span>ダッシュボード</a>
+      <a class="nav-item" href="/logs"><span class="ic">🕓</span>履歴ログ</a>
+      <a class="nav-item" href="/settings"><span class="ic">🔔</span>通知設定</a>
+      <a class="nav-item" href="/logout"><span class="ic">⏻</span>ログアウト</a>
+    </nav>
+
+    <main class="content">
+      <div class="dash-grid">
+        <!-- リアルタイム/認識画像 -->
+        <section class="card dash-live">
+          <div class="card-head">
+            📷 リアルタイム映像 ／ 認識画像
+            {% if edge_url %}
+            <span class="spacer" style="flex:1"></span>
+            <a class="link" href="{{ edge_url }}/video" target="_blank" style="font-size:13px;">別タブで開く ↗</a>
+            {% endif %}
+          </div>
+          <div class="card-body">
+            <div class="live-frame">
+              <span class="live-dot"><span class="dot"></span>LIVE</span>
+              {% if edge_url %}
+              <img id="liveVideo" src="{{ edge_url }}/video" alt="リアルタイム映像"
+                   style="width:100%; height:100%; object-fit:cover;"
+                   onerror="this.style.display='none'; document.getElementById('liveFallback').style.display='block';">
+              <span id="liveFallback" style="display:none;">
+                エッジに接続できません（{{ edge_url }}）。<br>Piの app.py が起動しているか確認してください。
+              </span>
+              {% else %}
+              <span>EDGE_URL 未設定（.env にエッジのURLを設定すると映像が表示されます）</span>
+              {% endif %}
+            </div>
+          </div>
+        </section>
+
+        <!-- 最新のAI応答 -->
+        <section class="card dash-reply">
+          <div class="card-head">🤖 最新のAI応答</div>
+          <div class="card-body" id="replyArea">
+            <p class="empty">読み込み中…</p>
+          </div>
+        </section>
+
+        <!-- 履歴ログ -->
+        <section class="card dash-logs">
+          <div class="card-head">🕓 履歴ログ（log）</div>
+          <div class="card-body" style="padding:6px;">
+            <div class="timeline" id="logList">
+              <div class="empty">読み込み中…</div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ログ詳細モーダル（画像＋AI回答） -->
+<div class="modal-backdrop" id="logModal" style="display:none;">
+  <div class="modal-detail">
+    <button class="modal-close" onclick="closeLogDetail()" aria-label="閉じる">×</button>
+    <h3 id="md-query" style="margin-right:30px;"></h3>
+    <div class="md-meta"><span id="md-time"></span> <span id="md-badge"></span></div>
+
+    <img id="md-image" class="md-image" alt="認識画像" style="display:none;">
+    <div id="md-noimage" class="empty" style="display:none;">画像がありません</div>
+
+    <div class="md-label">AIの回答</div>
+    <p id="md-response" class="reply-text"></p>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
