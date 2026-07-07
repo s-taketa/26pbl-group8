@@ -34,13 +34,13 @@ def send_email_code(to_addr: str, code: str) -> None:
         raise RuntimeError("SMTP未設定（SMTP_USER / SMTP_PASS を設定してください）")
 
     body = (
-        "OLEC 見守りアシスタントの認証コードをお知らせします。\n\n"
+        "コエミマ 見守りアシスタントの認証コードをお知らせします。\n\n"
         f"    認証コード： {code}\n\n"
         "5分以内に画面へ入力してください。\n"
         "※このメールに心当たりがない場合は破棄してください。"
     )
     msg = MIMEText(body, "plain", "utf-8")
-    msg["Subject"] = "【OLEC】パスワード再設定の認証コード"
+    msg["Subject"] = "【コエミマ】パスワード再設定の認証コード"
     msg["From"] = SMTP_FROM
     msg["To"] = to_addr
 
