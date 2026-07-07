@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>履歴ログ｜OLEC 見守りアシスタント</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <span class="brand">OLEC<small>AI見守りアシスタント</small></span>
+    <span class="spacer"></span>
+    <span class="user"><span class="avatar">{{ user_name[0] if user_name else '?' }}</span>{{ user_name }}　<a href="/logout">ログアウト</a></span>
+  </div>
+
+  <div class="shell">
+    <nav class="sidebar">
+      <a class="nav-item" href="/"><span class="ic">🏠</span>ダッシュボード</a>
+      <a class="nav-item active" href="/logs"><span class="ic">🕓</span>履歴ログ</a>
+      <a class="nav-item" href="/settings"><span class="ic">🔔</span>通知設定</a>
+      <a class="nav-item" href="/logout"><span class="ic">⏻</span>ログアウト</a>
+    </nav>
+
+    <main class="content">
+      <h2 class="page-title">行動・通知履歴（log）</h2>
+      <section class="card">
+        <div class="card-body" style="padding:6px;">
+          <div class="timeline" id="fullLogList">
+            <div class="empty">読み込み中…</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- ログ詳細モーダル（画像＋AI回答） -->
+<div class="modal-backdrop" id="logModal" style="display:none;">
+  <div class="modal-detail">
+    <button class="modal-close" onclick="closeLogDetail()" aria-label="閉じる">×</button>
+    <h3 id="md-query" style="margin-right:30px;"></h3>
+    <div class="md-meta"><span id="md-time"></span> <span id="md-badge"></span></div>
+
+    <img id="md-image" class="md-image" alt="認識画像" style="display:none;">
+    <div id="md-noimage" class="empty" style="display:none;">画像がありません</div>
+
+    <div class="md-label">AIの回答</div>
+    <p id="md-response" class="reply-text"></p>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

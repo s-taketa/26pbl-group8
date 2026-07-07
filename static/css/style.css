@@ -310,3 +310,107 @@ button.is-loading::after {
     min-width: 140px;
     padding: 10px 24px;
 }
+
+/* =============================================
+   ダッシュボード（管理画面）
+   ============================================= */
+.app { min-height: 100vh; display: flex; flex-direction: column; }
+.topbar {
+    height: 60px; background: #fff; border-bottom: 1px solid #e2e8f0;
+    display: flex; align-items: center; gap: 14px; padding: 0 20px;
+    position: sticky; top: 0; z-index: 20;
+}
+.brand { font-weight: 800; letter-spacing: .1em; font-size: 22px; color: #007bff; }
+.brand small { font-weight: 600; letter-spacing: 0; font-size: 12px; color: #6b7280; margin-left: 8px; }
+.topbar .spacer { flex: 1; }
+.topbar .user { display: flex; align-items: center; gap: 10px; color: #6b7280; font-size: 15px; }
+.topbar .user a { color: #6b7280; font-size: 14px; }
+.avatar { width: 34px; height: 34px; border-radius: 50%; background: #cfe0f0; display: grid; place-items: center; color: #2358ad; font-weight: 700; }
+
+.shell { display: flex; flex: 1; min-height: 0; }
+.sidebar { width: 220px; background: #fff; border-right: 1px solid #e2e8f0; padding: 16px 12px; display: flex; flex-direction: column; gap: 4px; }
+.nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; color: #1c2733; text-decoration: none; font-weight: 600; width: auto; }
+.nav-item:hover { background: #f1f6fc; }
+.nav-item.active { background: #cfe0f0; color: #2358ad; }
+.content { flex: 1; padding: 22px; overflow: auto; }
+.page-title { font-size: 22px; margin: 6px 0 18px; }
+
+.dash-grid {
+    display: grid; gap: 18px;
+    grid-template-columns: 1.4fr 360px;
+    grid-template-rows: auto 1fr;
+    grid-template-areas: "live logs" "reply logs";
+    height: calc(100vh - 60px - 44px);
+}
+.dash-live { grid-area: live; }
+.dash-reply { grid-area: reply; }
+.dash-logs { grid-area: logs; }
+
+.card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 16px rgba(28,56,110,.06); }
+.card-head { padding: 14px 18px; border-bottom: 1px solid #e2e8f0; font-weight: 700; }
+.card-body { padding: 18px; }
+
+.live-frame {
+    aspect-ratio: 16/10; background: linear-gradient(135deg,#1d3a5f,#0d1b2e);
+    border-radius: 10px; display: grid; place-items: center; color: #9fb4cf;
+    position: relative; overflow: hidden;
+}
+.live-frame .live-dot { position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,.55); color: #fff; font-size: 13px; padding: 4px 10px; border-radius: 999px; display: flex; align-items: center; gap: 6px; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: #ff4d4d; display: inline-block; animation: spin-dot 1.2s infinite; }
+@keyframes spin-dot { 50% { opacity: .3; } }
+
+.reply-text { font-size: 18px; line-height: 1.7; }
+.meta-row { display: flex; gap: 16px; color: #6b7280; font-size: 14px; margin-bottom: 10px; flex-wrap: wrap; }
+
+.badge { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; }
+.badge-ok { background: #e3f6ec; color: #2e9e5b; }
+.badge-fail { background: #fbe6e6; color: #d63a3a; }
+
+.timeline { display: flex; flex-direction: column; }
+.log-item { display: flex; gap: 12px; padding: 12px; border-radius: 10px; border-bottom: 1px solid #eef2f7; }
+.log-item:hover { background: #f3f7fc; }
+.log-thumb { width: 50px; height: 50px; border-radius: 8px; background: #cfe0f0; flex: none; }
+.log-main { min-width: 0; flex: 1; }
+.log-q { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.log-time { font-size: 13px; color: #6b7280; }
+.empty { padding: 40px 10px; text-align: center; color: #6b7280; }
+
+/* 設定画面：トグルスイッチ・行 */
+.settings-card { max-width: 640px; }
+.setting-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 4px; border-bottom: 1px solid #eef2f7; }
+.setting-row:last-child { border-bottom: none; }
+.setting-row .label { font-weight: 600; }
+.setting-row .desc { font-size: 13px; color: #6b7280; }
+.switch { position: relative; width: 52px; height: 30px; flex: none; display: inline-block; }
+.switch input { display: none; }
+.switch span { position: absolute; inset: 0; background: #c7d3e3; border-radius: 999px; transition: .2s; cursor: pointer; }
+.switch span::after { content: ""; position: absolute; width: 24px; height: 24px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .2s; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+.switch input:checked + span { background: #2f6fd6; }
+.switch input:checked + span::after { transform: translateX(22px); }
+.settings-actions { display: flex; gap: 10px; align-items: center; margin-top: 18px; }
+.settings-actions .grow { flex: 1; }
+.text-input { padding: 10px 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; width: 220px; }
+
+/* ボタン（ダッシュボード系。loginのグローバルbutton指定を上書き） */
+.btn { width: auto; padding: 12px 22px; font-size: 16px; font-weight: 600; border-radius: 8px; border: 1px solid #ccc; background: #fff; color: #1c2733; cursor: pointer; }
+.btn:hover { background: #f3f7fc; }
+.btn-primary { background: #2f6fd6; border-color: #2f6fd6; color: #fff; }
+.btn-primary:hover { background: #2358ad; }
+
+/* ログ項目クリック・詳細モーダル */
+.log-item.clickable { cursor: pointer; }
+.log-item.clickable:hover { background: #eef4fc; }
+.log-thumb { background-size: cover; background-position: center; }
+.modal-backdrop { position: fixed; inset: 0; background: rgba(15,25,45,.6); display: grid; place-items: center; z-index: 50; padding: 20px; }
+.modal-detail { position: relative; background: #fff; border-radius: 14px; box-shadow: 0 10px 40px rgba(0,0,0,.3); max-width: 560px; width: 100%; max-height: 88vh; overflow: auto; padding: 24px; }
+.modal-close { position: absolute; top: 12px; right: 14px; width: 36px; height: 36px; border: none; background: #eef2f7; border-radius: 50%; font-size: 20px; cursor: pointer; color: #5b6b7d; }
+.modal-close:hover { background: #e0e7f0; }
+.md-meta { display: flex; gap: 12px; align-items: center; color: #6b7280; font-size: 14px; margin: 4px 0 14px; }
+.md-image { width: 100%; border-radius: 10px; background: #0d1b2e; display: block; }
+.md-label { font-weight: 700; margin: 16px 0 6px; color: #2358ad; }
+
+@media (max-width: 768px) {
+    .sidebar { display: none; }
+    .content { padding: 16px 14px; }
+    .dash-grid { grid-template-columns: 1fr; grid-template-areas: "live" "reply" "logs"; height: auto; }
+}

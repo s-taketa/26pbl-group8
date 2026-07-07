@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>新規登録｜OLEC 見守りアシスタント</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="register-container">
+    <div class="register-header">
+      <a class="back-btn" href="/login">← 戻る</a>
+      <h1>新規登録</h1>
+    </div>
+
+    <div id="formMessage" class="form-message" style="display:none;"></div>
+
+    <form id="registerForm" novalidate>
+      <div class="form-group">
+        <label for="userName">お名前（表示名）</label>
+        <input id="userName" name="name" type="text" maxlength="20" placeholder="例: 河原 たろう">
+        <p class="field-error" id="err-name"></p>
+      </div>
+
+      <div class="form-group">
+        <label for="loginId">電話番号またはメールアドレス</label>
+        <input id="loginId" name="id" type="text" autocomplete="username" placeholder="例: hello@example.com">
+        <p class="field-error" id="err-id"></p>
+      </div>
+
+      <div class="form-group">
+        <label for="password">パスワード</label>
+        <input id="password" name="password" type="password" autocomplete="new-password" placeholder="英数8文字以上">
+        <p class="field-error" id="err-pw"></p>
+      </div>
+
+      <div class="form-group">
+        <label for="password2">パスワード（確認用）</label>
+        <input id="password2" name="password2" type="password" autocomplete="new-password" placeholder="もう一度入力">
+        <p class="field-error" id="err-pw2"></p>
+      </div>
+
+      <div class="submit-row">
+        <button type="submit" id="registerBtn"><span class="btn-label">登録</span></button>
+      </div>
+    </form>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
