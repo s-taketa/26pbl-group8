@@ -79,6 +79,15 @@ class DatabaseManager:
         finally:
             session.close()
 
+    def getFirstUserId(self):
+        # 認識ログの紐付け先。実在する最初のユーザーIDを返す（初期アカウント固定に依存しない）
+        session = self._get_session()
+        try:
+            user = session.query(User).order_by(User.id.asc()).first()
+            return user.id if user else None
+        finally:
+            session.close()
+
     def getSystemSettings(self, key):
         # キーワード設定などをsystem_settingsテーブルから取得する
         session = self._get_session()

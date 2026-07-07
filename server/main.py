@@ -41,6 +41,12 @@ except Exception as e:
     print(f"[WARN] LINE通知は無効（LINE_TOKEN未設定など）: {e}")
     line_notifier = None
 
+try:
+    import mailer
+except Exception as e:
+    print(f"[WARN] mailer 読み込み失敗（メール認証なしで継続）: {e}")
+    mailer = None
+
 from main_controller import MainController
 
 # ---- Flask 初期化（templates/static はリポジトリ直下にある） ----
@@ -61,6 +67,18 @@ controller = MainController(db=db)
 def _frame(payload: bytes) -> bytes:
     """ストリーム1フレーム = 4バイトの長さ接頭辞(BE) + 本体"""
     return struct.pack(">I", len(payload)) + payload
+
+
+def _emergency_flag(v) -> int:
+    """is_emergency を 0/1 に正規化する。
+    Geminiが 1 / "1" / True / "true" のどれで返しても緊急として扱う。
+    （以前は `== 1` だけで判定しており、"1"（文字列）だと通知が漏れていた）"""
+    if isinstance(v, bool):
+        return 1 if v else 0
+    try:
+        return 1 if int(v) == 1 else 0
+    except (TypeError, ValueError):
+        return 1 if str(v).strip().lower() in ("1", "true", "yes") else 0
 
 
 def _ui_context():
@@ -133,15 +151,21 @@ def receive_recognition():
         result = processResponse(image, command)
         print(f"[AI] 解析結果: {result}")
 
+        # 緊急フラグを 0/1 に正規化（型ゆらぎで通知漏れ／誤検知を防ぐ）
+        emergency = _emergency_flag(result.get("is_emergency"))
+
+        # 認識ログの紐付け先ユーザー（初期アカウント固定ではなく実在する先頭ユーザー）
+        uid = db.getFirstUserId() if db else None
+
         # DB保存（認識ログ）
-        if db:
+        if db and uid:
             try:
                 db.writeRecognitionLog({
-                    "user_id": DEFAULT_USER_ID,
+                    "user_id": uid,
                     "image_path": saved_path,
                     "user_query": command,
                     "ai_response": result.get("answer"),
-                    "is_emergency": bool(result.get("is_emergency")),
+                    "is_emergency": bool(emergency),
                 })
             except Exception as e:
                 print(f"[WARN] DB保存失敗: {e}")
@@ -150,7 +174,7 @@ def receive_recognition():
         settings = controller.getSettings() if controller else {}
         answer_text = result.get("answer", "") or ""
 
-        if result.get("is_emergency") == 1:
+        if emergency == 1:
             # 緊急時：LINE緊急通知 ＋ 通知履歴保存
             category = result.get("category") or "other_emergency"
             alert = result.get("alert_message") or answer_text or "緊急事態を検知しました"
@@ -160,10 +184,10 @@ def receive_recognition():
                     line_notifier.sendUrgentAlert(alert, "high")
                 except Exception as e:
                     print(f"[WARN] LINE通知失敗: {e}")
-            if db:
+            if db and uid:
                 try:
                     db.writeNotificationHistory({
-                        "user_id": DEFAULT_USER_ID, "category": category, "message": alert,
+                        "user_id": uid, "category": category, "message": alert,
                     })
                 except Exception as e:
                     print(f"[WARN] 通知履歴保存失敗: {e}")
@@ -187,7 +211,7 @@ def receive_recognition():
     # 「回答テキスト＋文ごとの音声」をストリーミング返却
     def generate():
         meta = json.dumps(
-            {"answer_text": answer, "is_emergency": result.get("is_emergency", 0)},
+            {"answer_text": answer, "is_emergency": emergency},
             ensure_ascii=False,
         ).encode("utf-8")
         yield _frame(meta)
@@ -208,10 +232,35 @@ def heartbeat():
 @app.route('/api/login', methods=['POST'])
 def api_login():
     data = request.get_json(force=True, silent=True) or {}
-    if controller.authenticateUser(data.get("id"), data.get("password")):
-        session["user_id"] = data.get("id")
+    login_id = data.get("id")
+
+    # 1段階目：ID/パスワード照合
+    if not controller.authenticateUser(login_id, data.get("password")):
+        return jsonify({"status": "error", "message": "IDまたはパスワードが正しくありません"}), 401
+
+    # 2段階目：メール宛かつSMTP設定済みなら、確認コードを送って保留にする
+    if mailer and mailer.is_email(login_id) and mailer.is_configured():
+        controller.sendAuthCode(login_id)
+        session["pending_login"] = login_id
+        return jsonify({"status": "code_sent", "message": "確認コードをメールに送信しました"})
+
+    # メール認証が使えない場合（メール以外のID/未設定）はそのままログイン
+    session["user_id"] = login_id
+    return jsonify({"status": "ok"})
+
+
+@app.route('/api/login-verify', methods=['POST'])
+def api_login_verify():
+    """ログイン時のメール確認コードを検証してログインを確定する。"""
+    data = request.get_json(force=True, silent=True) or {}
+    pending = session.get("pending_login")
+    if not pending:
+        return jsonify({"status": "error", "message": "セッションが無効です。最初からやり直してください"}), 400
+    if controller.validateAuthCode(data.get("code"), pending):
+        session.pop("pending_login", None)
+        session["user_id"] = pending
         return jsonify({"status": "ok"})
-    return jsonify({"status": "error", "message": "IDまたはパスワードが正しくありません"}), 401
+    return jsonify({"status": "error", "message": "確認コードが正しくないか、期限が切れています"}), 400
 
 
 @app.route('/api/register', methods=['POST'])
@@ -298,6 +347,11 @@ def register_page():
     return render_template("register.html")
 
 
+@app.route('/forgot')
+def forgot_page():
+    return render_template("forgot.html")
+
+
 @app.route('/logs')
 def logs_page():
     if not session.get("user_id"):
@@ -330,8 +384,9 @@ def logout():
 if __name__ == "__main__":
     if db:
         try:
-            db.init_db()
-            print("[DB] テーブル初期化・初期ユーザー確認 完了")
+            # 初期アカウントは作らない（テーブル作成のみ）
+            db.init_db(seed_default_user=False)
+            print("[DB] テーブル初期化 完了")
         except Exception as e:
             print(f"[WARN] DB初期化スキップ（MySQL未起動など）: {e}")
 

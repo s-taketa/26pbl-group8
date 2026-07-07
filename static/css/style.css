@@ -367,12 +367,13 @@ button.is-loading::after {
 .badge-fail { background: #fbe6e6; color: #d63a3a; }
 
 .timeline { display: flex; flex-direction: column; }
-.log-item { display: flex; gap: 12px; padding: 12px; border-radius: 10px; border-bottom: 1px solid #eef2f7; }
+.log-item { display: flex; align-items: center; gap: 12px; padding: 12px 10px; border-bottom: 1px solid #eef2f7; }
+.log-item:last-child { border-bottom: none; }
 .log-item:hover { background: #f3f7fc; }
-.log-thumb { width: 50px; height: 50px; border-radius: 8px; background: #cfe0f0; flex: none; }
-.log-main { min-width: 0; flex: 1; }
+.log-thumb { width: 52px; height: 52px; border-radius: 8px; background: #cfe0f0; flex: none; }
+.log-main { min-width: 0; flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 3px; }
 .log-q { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.log-time { font-size: 13px; color: #6b7280; }
+.log-time { font-size: 13px; color: #6b7280; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .empty { padding: 40px 10px; text-align: center; color: #6b7280; }
 
 /* 設定画面：トグルスイッチ・行 */

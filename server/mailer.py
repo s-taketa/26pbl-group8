@@ -57,4 +57,3 @@ def send_email_code(to_addr: str, code: str) -> None:
             server.starttls(context=context)
             server.login(SMTP_USER, SMTP_PASS)
             server.send_message(msg)
-s

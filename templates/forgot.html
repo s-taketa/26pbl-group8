@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>パスワード再設定｜OLEC 見守りアシスタント</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="login-container">
+    <h1>パスワード再設定</h1>
+
+    <div id="formMessage" class="form-message" style="display:none;"></div>
+
+    <!-- ステップ1：連絡先入力 → コード送信 -->
+    <form id="forgotEmailForm" novalidate>
+      <p style="font-size:14px;color:#444;margin:0 0 14px;">登録メールアドレスを入力してください。確認コードを送信します。</p>
+      <div class="form-group">
+        <label for="fgEmail">メールアドレス</label>
+        <input id="fgEmail" type="text" autocomplete="username" placeholder="例: hello@example.com">
+        <p class="field-error" id="err-fgEmail"></p>
+      </div>
+      <button type="submit" id="fgSendBtn"><span class="btn-label">確認コードを送信</span></button>
+      <a class="forgot" href="/login">ログイン画面へ戻る</a>
+    </form>
+
+    <!-- ステップ2：コード入力 -->
+    <form id="forgotCodeForm" novalidate style="display:none;">
+      <p style="font-size:14px;color:#444;margin:0 0 14px;">メールに届いた4桁の確認コードを入力してください。</p>
+      <div class="form-group">
+        <label for="fgCode">確認コード</label>
+        <input id="fgCode" type="text" inputmode="numeric" maxlength="4" placeholder="4桁">
+        <p class="field-error" id="err-fgCode"></p>
+      </div>
+      <button type="submit" id="fgVerifyBtn"><span class="btn-label">次へ</span></button>
+    </form>
+
+    <!-- ステップ3：新しいパスワード -->
+    <form id="forgotResetForm" novalidate style="display:none;">
+      <p style="font-size:14px;color:#444;margin:0 0 14px;">新しいパスワードを設定してください（英数8文字以上）。</p>
+      <div class="form-group">
+        <label for="fgPw">新しいパスワード</label>
+        <input id="fgPw" type="password" autocomplete="new-password" placeholder="英数8文字以上">
+        <p class="field-error" id="err-fgPw"></p>
+      </div>
+      <div class="form-group">
+        <label for="fgPw2">新しいパスワード（確認用）</label>
+        <input id="fgPw2" type="password" autocomplete="new-password" placeholder="もう一度入力">
+        <p class="field-error" id="err-fgPw2"></p>
+      </div>
+      <button type="submit" id="fgResetBtn"><span class="btn-label">パスワードを更新</span></button>
+    </form>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

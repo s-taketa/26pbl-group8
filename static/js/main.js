@@ -57,7 +57,7 @@ function isLogModalOpen() {
   return m && m.style.display === "grid";
 }
 
-// ===================== ログイン画面 =====================
+// ===================== ログイン画面（メール2段階認証対応） =====================
 function initLogin() {
   const form = document.getElementById("loginForm");
   if (!form) return;
@@ -66,22 +66,23 @@ function initLogin() {
   const btn = document.getElementById("loginBtn");
   const idEl = document.getElementById("loginId");
   const pwEl = document.getElementById("password");
+  const verifyForm = document.getElementById("verifyForm");
+  const verifyBtn = document.getElementById("verifyBtn");
+  const codeEl = document.getElementById("loginCode");
 
   function showMessage(text, type) {
     msg.textContent = text;
     msg.className = "form-message " + (type || "error");
     msg.style.display = "block";
   }
-  function clearFieldErrors() {
+
+  // 1段階目：ID/パスワード送信
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    msg.style.display = "none";
     ["err-id", "err-pw"].forEach(id => { document.getElementById(id).textContent = ""; });
     idEl.classList.remove("is-invalid");
     pwEl.classList.remove("is-invalid");
-  }
-
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    clearFieldErrors();
-    msg.style.display = "none";
 
     let hasError = false;
     if (!idEl.value.trim()) {
@@ -102,11 +103,20 @@ function initLogin() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: idEl.value.trim(), password: pwEl.value }),
       });
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok && data.status === "code_sent") {
+        // メール確認コードの入力へ切り替え
+        form.style.display = "none";
+        verifyForm.style.display = "block";
+        showMessage(data.message || "確認コードをメールに送信しました", "success");
+        if (codeEl) codeEl.focus();
+        return;
+      }
       if (res.ok) {
         location.href = "/";
         return;
       }
-      const data = await res.json().catch(() => ({}));
       showMessage(data.message || "IDまたはパスワードが正しくありません", "error");
     } catch (err) {
       showMessage("サーバーに接続できませんでした。時間をおいて再度お試しください", "error");
@@ -115,6 +125,41 @@ function initLogin() {
       btn.disabled = false;
     }
   });
+
+  // 2段階目：確認コード送信
+  if (verifyForm) {
+    verifyForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      msg.style.display = "none";
+      document.getElementById("err-code").textContent = "";
+
+      if (!codeEl.value.trim()) {
+        document.getElementById("err-code").textContent = "確認コードを入力してください";
+        return;
+      }
+
+      verifyBtn.classList.add("is-loading");
+      verifyBtn.disabled = true;
+      try {
+        const res = await fetch("/api/login-verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: codeEl.value.trim() }),
+        });
+        if (res.ok) {
+          location.href = "/";
+          return;
+        }
+        const data = await res.json().catch(() => ({}));
+        showMessage(data.message || "確認コードが正しくありません", "error");
+      } catch (err) {
+        showMessage("サーバーに接続できませんでした。時間をおいて再度お試しください", "error");
+      } finally {
+        verifyBtn.classList.remove("is-loading");
+        verifyBtn.disabled = false;
+      }
+    });
+  }
 }
 
 // ===================== ダッシュボード画面 =====================
@@ -318,9 +363,96 @@ async function initSettings() {
   });
 }
 
+// ===================== パスワード再設定（3ステップ） =====================
+function initForgot() {
+  const p1 = document.getElementById("forgotEmailForm");
+  if (!p1) return;
+
+  const p2 = document.getElementById("forgotCodeForm");
+  const p3 = document.getElementById("forgotResetForm");
+  const msg = document.getElementById("formMessage");
+  let contact = "";
+
+  function show(text, type) {
+    msg.textContent = text;
+    msg.className = "form-message " + (type || "error");
+    msg.style.display = "block";
+  }
+  async function post(url, body) {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json().catch(() => ({}));
+    return { ok: res.ok, data };
+  }
+
+  // ステップ1：メール入力 → コード送信
+  p1.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    msg.style.display = "none";
+    const email = document.getElementById("fgEmail").value.trim();
+    document.getElementById("err-fgEmail").textContent = "";
+    if (!email) { document.getElementById("err-fgEmail").textContent = "メールアドレスを入力してください"; return; }
+    try {
+      const { ok, data } = await post("/api/send-auth-code", { contact: email });
+      if (ok) {
+        contact = email;
+        p1.style.display = "none";
+        p2.style.display = "block";
+        show("確認コードをメールに送信しました", "success");
+      } else {
+        show(data.message || "送信に失敗しました", "error");
+      }
+    } catch (err) { show("サーバーに接続できませんでした", "error"); }
+  });
+
+  // ステップ2：コード検証
+  p2.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    msg.style.display = "none";
+    const code = document.getElementById("fgCode").value.trim();
+    document.getElementById("err-fgCode").textContent = "";
+    if (!code) { document.getElementById("err-fgCode").textContent = "確認コードを入力してください"; return; }
+    try {
+      const { ok, data } = await post("/api/validate-auth-code", { contact, code });
+      if (ok) {
+        p2.style.display = "none";
+        p3.style.display = "block";
+        show("本人確認できました。新しいパスワードを設定してください", "success");
+      } else {
+        show(data.message || "確認コードが正しくないか、期限切れです", "error");
+      }
+    } catch (err) { show("サーバーに接続できませんでした", "error"); }
+  });
+
+  // ステップ3：新パスワード設定
+  p3.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    msg.style.display = "none";
+    const pw = document.getElementById("fgPw").value;
+    const pw2 = document.getElementById("fgPw2").value;
+    document.getElementById("err-fgPw").textContent = "";
+    document.getElementById("err-fgPw2").textContent = "";
+    if (pw.length < 8) { document.getElementById("err-fgPw").textContent = "パスワードは8文字以上で入力してください"; return; }
+    if (pw !== pw2) { document.getElementById("err-fgPw2").textContent = "パスワードが一致しません"; return; }
+    try {
+      const { ok, data } = await post("/api/reset-password", { id: contact, password: pw });
+      if (ok) {
+        show("パスワードを更新しました。ログイン画面へ移動します…", "success");
+        setTimeout(() => { location.href = "/login"; }, 1500);
+      } else {
+        show(data.message || "更新に失敗しました", "error");
+      }
+    } catch (err) { show("サーバーに接続できませんでした", "error"); }
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   initLogin();
   initRegister();
+  initForgot();
   initDashboard();
   initLogs();
   initSettings();
