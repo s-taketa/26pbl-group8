@@ -9,7 +9,6 @@ uvicorn==0.24.0
 mysql-connector-python==8.2.0
 PyMySQL==1.1.1
 SQLAlchemy==2.0.23
-PyMySQL==1.1.0
 
 # 映像処理
 opencv-python==4.8.1.78
