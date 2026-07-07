@@ -17,6 +17,7 @@
 
     <div id="formMessage" class="form-message" style="display:none;"></div>
 
+    <!-- 1段階目：ID/パスワード -->
     <form id="loginForm" novalidate>
       <div class="form-group">
         <label for="loginId">電話番号またはメールアドレス</label>
@@ -31,12 +32,22 @@
       </div>
 
       <button type="submit" id="loginBtn"><span class="btn-label">ログイン</span></button>
-      <a class="forgot" href="#">パスワードを忘れた場合</a>
+      <a class="forgot" href="/forgot">パスワードを忘れた場合</a>
     </form>
 
-    <p style="font-size:12px;color:#888;margin-top:18px;">
-      初期アカウント：<b>admin@example.com</b> ／ <b>password123</b>
-    </p>
+    <!-- 2段階目：メール確認コード（code_sent のとき表示） -->
+    <form id="verifyForm" novalidate style="display:none;">
+      <p style="font-size:14px;color:#444;margin:0 0 14px;">
+        登録メールアドレスに確認コードを送信しました。メールに記載の4桁コードを入力してください。
+      </p>
+      <div class="form-group">
+        <label for="loginCode">確認コード</label>
+        <input id="loginCode" name="code" type="text" inputmode="numeric" maxlength="4" placeholder="4桁">
+        <p class="field-error" id="err-code"></p>
+      </div>
+      <button type="submit" id="verifyBtn"><span class="btn-label">ログイン</span></button>
+    </form>
+
   </div>
 
   <script src="{{ url_for('static', filename='js/main.js') }}"></script>
