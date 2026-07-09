@@ -5,7 +5,9 @@ import json
 import time
 import uuid
 import struct
+import secrets
 import threading
+from functools import wraps
 
 from flask import (Flask, request, jsonify, session, Response,
                    render_template, redirect, url_for, send_from_directory)
@@ -56,12 +58,26 @@ app = Flask(
     template_folder=os.path.join(BASE_DIR, "..", "templates"),
     static_folder=os.path.join(BASE_DIR, "..", "static"),
 )
-app.secret_key = os.getenv("FLASK_SECRET_KEY", "change-this-secret-key")
+# セッション署名鍵：環境変数が最優先。未設定ならプロセスごとにランダム生成する
+# （既定の固定値を使うとセッション偽造が可能になるため）。
+app.secret_key = os.getenv("FLASK_SECRET_KEY") or secrets.token_hex(32)
+if not os.getenv("FLASK_SECRET_KEY"):
+    print("[WARN] FLASK_SECRET_KEY 未設定：ランダム鍵を生成しました（再起動でログインセッションは無効化されます）")
 
 IMAGE_STORAGE_DIR = os.getenv("IMAGE_STORAGE_DIR", "/app/images")
 DEFAULT_USER_ID = 1  # 初期ユーザー（init_dbでseed）
 
 controller = MainController(db=db)
+
+
+def login_required(view):
+    """API用：ログインセッションが無ければ 401 を返すデコレータ。"""
+    @wraps(view)
+    def wrapper(*args, **kwargs):
+        if not session.get("user_id"):
+            return jsonify({"status": "error", "message": "認証が必要です"}), 401
+        return view(*args, **kwargs)
+    return wrapper
 
 
 def _frame(payload: bytes) -> bytes:
@@ -283,7 +299,10 @@ def send_auth_code():
 @app.route('/api/validate-auth-code', methods=['POST'])
 def validate_auth_code():
     data = request.get_json(force=True, silent=True) or {}
-    if controller.validateAuthCode(data.get("code"), data.get("contact")):
+    contact = data.get("contact")
+    if controller.validateAuthCode(data.get("code"), contact):
+        # コード検証に成功した宛先のみ、パスワード再設定を許可する（バイパス防止）
+        session["reset_verified"] = contact
         return jsonify({"status": "ok"})
     return jsonify({"status": "error", "message": "コードが正しくありません"}), 400
 
@@ -291,23 +310,31 @@ def validate_auth_code():
 @app.route('/api/reset-password', methods=['POST'])
 def reset_password():
     data = request.get_json(force=True, silent=True) or {}
-    ok = controller.resetPassword(data.get("id"), data.get("password"))
+    target_id = data.get("id")
+    # コード検証済みの宛先と一致する場合のみ再設定を許可する
+    if not target_id or session.get("reset_verified") != target_id:
+        return jsonify({"status": "error", "message": "認証コードの確認が必要です"}), 403
+    ok = controller.resetPassword(target_id, data.get("password"))
     if ok:
+        session.pop("reset_verified", None)
         return jsonify({"status": "ok", "message": "パスワードを更新しました"})
     return jsonify({"status": "error", "message": "パスワード更新に失敗しました"}), 400
 
 
 @app.route('/api/dashboard', methods=['GET'])
+@login_required
 def dashboard_data():
     return jsonify(controller.getDashboardData())
 
 
 @app.route('/api/settings', methods=['GET'])
+@login_required
 def api_get_settings():
     return jsonify(controller.getSettings())
 
 
 @app.route('/api/settings', methods=['POST'])
+@login_required
 def api_save_settings():
     data = request.get_json(force=True, silent=True) or {}
     if controller.updateSettings(data):
@@ -316,6 +343,7 @@ def api_save_settings():
 
 
 @app.route('/api/sync-settings', methods=['POST'])
+@login_required
 def sync_settings():
     controller.syncSettingsToEdge()
     return jsonify({"status": "ok", "message": "ラズパイへ設定を反映しました"})
