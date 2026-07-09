@@ -4,7 +4,7 @@
 |---|---|
 | DBMS | MySQL 8.0（`utf8mb4` / `utf8mb4_unicode_ci`） |
 | 命名規則 | テーブル・カラムは snake_case |
-| バージョン | 1.0 |
+| バージョン | 2.0 |
 | 更新日 | 2026-07-09 |
 
 すべてのデータを Ubuntu サーバー上の MySQL で一括管理する。エッジ（Raspberry Pi 5）で発生した認識イベントはサーバー経由で保存される。テーブルはアプリ起動時に `init_db()`（SQLAlchemy の `create_all`）で自動作成され、`sql/schema.sql` でも同等の定義を提供する。
