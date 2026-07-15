@@ -32,7 +32,7 @@ flowchart LR
         LINE[LINE Messaging API]
         SMTP[Gmail SMTP]
     end
-    subgraph Family["家族"]
+    subgraph Family["家族・補助者が利用するチャネル"]
         WEB[ブラウザ<br/>ダッシュボード]
         LN[LINEアプリ]
     end
@@ -100,8 +100,8 @@ flowchart TD
 ---
 
 ## 4. クラス図・シーケンス図・ER図
-- クラス図・シーケンス図 → 「詳細設計/詳細設計書.md」
-- 認識フローのシーケンス → 「基本設計/基本設計書.md 6章」
+- クラス図・詳細シーケンス図（認識フロー・ログイン・設定反映） → 「詳細設計/詳細設計書.md」
+- 処理フローの全体概要（利用者・家族の関わり方） → 「基本設計/基本設計書.md 6章」
 - ER図 → 「基本設計/SQL設計書.md」
 
 > 画像（PNG）が必要な場合は、Mermaid を `mmdc`（mermaid-cli）や各種オンラインエディタでPNG/SVGに書き出せる。
